@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Unclassified;
 using System.Diagnostics;
+using Microsoft.Win32;
 
 namespace GitRevisionTool
 {
@@ -214,9 +215,17 @@ namespace GitRevisionTool
 			value = value.Replace("{time:hm:}", revTime.ToString("HH:mm"));
 			value = value.Replace("{time:h}", revTime.ToString("HH"));
 			value = value.Replace("{time:o}", revTime.ToString("%K"));
-			value = Regex.Replace(value, @"\{!:(.*?)\}", delegate(Match m2) { return isModified ? m2.Groups[1].Value : ""; });
-			value = Regex.Replace(value, @"\{commit:(40|[1-3][0-9]|[5-9])\}", delegate(Match m2) { return revision.Substring(0, int.Parse(m2.Groups[1].Value)); });
+			value = Regex.Replace(value, @"\{!:(.*?)\}", delegate(Match m) { return isModified ? m.Groups[1].Value : ""; });
+			value = Regex.Replace(value, @"\{commit:(40|[1-3][0-9]|[5-9])\}", delegate(Match m) { return revision.Substring(0, int.Parse(m.Groups[1].Value)); });
+			value = Regex.Replace(value, @"\{xmin:([0-9]{4})\}", delegate(Match m) { return HexMinutes(int.Parse(m.Groups[1].Value), 1); });
+			value = Regex.Replace(value, @"\{xmin:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return HexMinutes(int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)); });
 			return value;
+		}
+
+		static string HexMinutes(int baseYear, int length)
+		{
+			int min = (int) (revTime - new DateTime(baseYear, 1, 1)).TotalMinutes;
+			return min.ToString("x" + length);
 		}
 
 		static void HandleHelp(bool showHelp)
@@ -295,15 +304,18 @@ namespace GitRevisionTool
 				Console.WriteLine("  {commit:<length>}  Prints first <length> chars of commit hash");
 				Console.WriteLine("  {date}             Prints commit date as YYYYMMDD");
 				Console.WriteLine("  {date:<format>}    Prints commit data with format:");
-				Console.WriteLine("                       ymd-  YYYY-MM-DD");
+				Console.WriteLine("                       ymd-   YYYY-MM-DD");
 				Console.WriteLine("  {time}             Prints commit time as HHMMS");
 				Console.WriteLine("  {time:<format>}    Prints commit time with format:");
-				Console.WriteLine("                       hms   HHMMSS");
-				Console.WriteLine("                       hms:  HH:MM:SS");
-				Console.WriteLine("                       hm    HHMM");
-				Console.WriteLine("                       hm:   HH:MM");
-				Console.WriteLine("                       h     HH");
-				Console.WriteLine("                       o     Time zone like +0100");
+				Console.WriteLine("                       hms    HHMMSS");
+				Console.WriteLine("                       hms:   HH:MM:SS");
+				Console.WriteLine("                       hm     HHMM");
+				Console.WriteLine("                       hm:    HH:MM");
+				Console.WriteLine("                       h      HH");
+				Console.WriteLine("                       o      Time zone like +0100");
+				Console.WriteLine("  {xmin:<year>:<length>");
+				Console.WriteLine("                     Prints minutes since year <year>, length <length>");
+				Console.WriteLine("                     in hexadecimal format");
 				Console.WriteLine();
 				Console.WriteLine("Example for C#:");
 				Console.WriteLine("  [assembly: AssemblyInformationalVersion(\"MyApp {commit:8}/{date}\")]");
@@ -327,20 +339,7 @@ namespace GitRevisionTool
 		static void ProcessDirectory(string path)
 		{
 			// First try to use the installed git binary
-			string gitExec = null;
-			foreach (string dir in Directory.GetDirectories(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "git*"))
-			{
-				gitExec = Path.Combine(dir, @"bin\git.exe");
-				if (!File.Exists(gitExec)) gitExec = null;
-			}
-			if (gitExec == null)
-			{
-				foreach (string dir in Directory.GetDirectories(ProgramFilesX86(), "git*"))
-				{
-					gitExec = Path.Combine(dir, @"bin\git.exe");
-					if (!File.Exists(gitExec)) gitExec = null;
-				}
-			}
+			string gitExec = FindGitBinary();
 			if (gitExec == null)
 			{
 				Console.Error.WriteLine("Error: Git not installed or not found.");
@@ -430,14 +429,76 @@ namespace GitRevisionTool
 			//}
 		}
 
+		private static string FindGitBinary()
+		{
+			string git = null;
+			
+			// Read registry uninstaller key
+			RegistryKey key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Git_is1");
+			if (key != null)
+			{
+				object loc = key.GetValue("InstallLocation");
+				if (loc is string)
+				{
+					git = Path.Combine((string) loc, @"bin\git.exe");
+					if (!File.Exists(git)) git = null;
+				}
+			}
+
+			// Try 64-bit registry key
+			if (git == null && Is64Bit)
+			{
+				key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Git_is1");
+				if (key != null)
+				{
+					object loc = key.GetValue("InstallLocation");
+					if (loc is string)
+					{
+						git = Path.Combine((string) loc, @"bin\git.exe");
+						if (!File.Exists(git)) git = null;
+					}
+				}
+			}
+			
+			// Search program files directory
+			if (git == null)
+			{
+				foreach (string dir in Directory.GetDirectories(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "git*"))
+				{
+					git = Path.Combine(dir, @"bin\git.exe");
+					if (!File.Exists(git)) git = null;
+				}
+			}
+
+			// Try 32-bit program files directory
+			if (git == null && Is64Bit)
+			{
+				foreach (string dir in Directory.GetDirectories(ProgramFilesX86(), "git*"))
+				{
+					git = Path.Combine(dir, @"bin\git.exe");
+					if (!File.Exists(git)) git = null;
+				}
+			}
+			
+			return git;
+		}
+
 		private static string ProgramFilesX86()
 		{
-			if (IntPtr.Size == 8 ||
-				!String.IsNullOrEmpty(Environment.GetEnvironmentVariable("PROCESSOR_ARCHITEW6432")))
+			if (Is64Bit)
 			{
 				return Environment.GetEnvironmentVariable("ProgramFiles(x86)");
 			}
 			return Environment.GetEnvironmentVariable("ProgramFiles");
+		}
+
+		private static bool Is64Bit
+		{
+			get
+			{
+				return IntPtr.Size == 8 ||
+					!String.IsNullOrEmpty(Environment.GetEnvironmentVariable("PROCESSOR_ARCHITEW6432"));
+			}
 		}
 	}
 }

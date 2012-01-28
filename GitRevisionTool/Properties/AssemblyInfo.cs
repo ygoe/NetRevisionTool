@@ -32,10 +32,14 @@ using System.Runtime.InteropServices;
 // Sie können alle Werte angeben oder die standardmäßigen Build- und Revisionsnummern 
 // übernehmen, indem Sie "*" eingeben:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.1")]
-[assembly: AssemblyFileVersion("1.0.1")]
+[assembly: AssemblyVersion("1.1")]
+[assembly: AssemblyFileVersion("1.1")]
 
 // Version history:
+//
+// 1.1 (2012-01-28)
+// * Git binary is first searched in the location from the uninstaller registry key
+// * New format option {xmin} for compressed high-resolution times
 //
 // 1.0.1 (2012-01-04)
 // * Git binary is searched in several directories (%ProgramFiles*%\Git*\bin\git.exe)
