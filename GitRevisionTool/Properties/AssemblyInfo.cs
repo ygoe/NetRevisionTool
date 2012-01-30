@@ -32,10 +32,15 @@ using System.Runtime.InteropServices;
 // Sie können alle Werte angeben oder die standardmäßigen Build- und Revisionsnummern 
 // übernehmen, indem Sie "*" eingeben:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.1")]
-[assembly: AssemblyFileVersion("1.1")]
+[assembly: AssemblyVersion("1.2")]
+[assembly: AssemblyFileVersion("1.2")]
 
 // Version history:
+//
+// 1.2 (2012-01-30)
+// * Added parameter --ignore-missing to ignore missing Git binary or working directory
+// * Made the <path> parameter actually work again (was ignored before)
+// * Kind of fixed {xmin} output for negative values (giving minus-prefixed values now)
 //
 // 1.1 (2012-01-28)
 // * Git binary is first searched in the location from the uninstaller registry key

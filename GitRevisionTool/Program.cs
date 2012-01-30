@@ -23,6 +23,7 @@ namespace GitRevisionTool
 			clp.AddKnownOption("a", "assembly-info");
 			clp.AddKnownOption("f", "format", true);
 			clp.AddKnownOption("h", "help");
+			clp.AddKnownOption("i", "ignore-missing");
 			clp.AddKnownOption("r", "revision");
 			clp.AddKnownOption("s", "restore");
 			clp.AddKnownOption("v", "version");
@@ -41,6 +42,7 @@ namespace GitRevisionTool
 			bool restoreAssemblyInfoFile = clp.IsOptionSet("s");
 			bool showRevision = clp.IsOptionSet("r");
 			bool stopIfModified = clp.IsOptionSet("M");
+			bool ignoreMissing = clp.IsOptionSet("i");
 			string path = clp.GetArgument(0);
 			string customFormat = "{!}{commit}";
 			if (clp.IsOptionSet("f"))
@@ -62,8 +64,16 @@ namespace GitRevisionTool
 					ProcessDirectory(path);
 					if (revision == null)
 					{
-						Console.Error.WriteLine("Error: Not a Git working directory.");
-						return 1;
+						if (ignoreMissing)
+						{
+							revision = "0000000000000000000000000000000000000000";
+							revTime = DateTimeOffset.Now;
+						}
+						else
+						{
+							Console.Error.WriteLine("Error: Not a Git working directory.");
+							return 1;
+						}
 					}
 					hasProcessed = true;
 				}
@@ -190,8 +200,16 @@ namespace GitRevisionTool
 					ProcessDirectory(path);
 					if (revision == null)
 					{
-						Console.Error.WriteLine("Error: Not a Git working directory.");
-						return 1;
+						if (ignoreMissing)
+						{
+							revision = "0000000000000000000000000000000000000000";
+							revTime = DateTimeOffset.Now;
+						}
+						else
+						{
+							Console.Error.WriteLine("Error: Not a Git working directory.");
+							return 1;
+						}
 					}
 					hasProcessed = true;
 				}
@@ -225,7 +243,10 @@ namespace GitRevisionTool
 		static string HexMinutes(int baseYear, int length)
 		{
 			int min = (int) (revTime - new DateTime(baseYear, 1, 1)).TotalMinutes;
-			return min.ToString("x" + length);
+			if (min < 0)
+				return "-" + (-min).ToString("x" + length);
+			else
+				return min.ToString("x" + length);
 		}
 
 		static void HandleHelp(bool showHelp)
@@ -275,6 +296,8 @@ namespace GitRevisionTool
 				Console.WriteLine("                  Patches the AssemblyInfo.cs/vb file's version specifications");   // 78c
 				Console.WriteLine("  -f, --format    Prints the revision string with the specified format");
 				Console.WriteLine("  -h, --help      Shows this help page");
+				Console.WriteLine("  -i, --ignore-missing");
+				Console.WriteLine("                  Does nothing if this is not a Git working directory");
 				Console.WriteLine("  -r, --revision  Shows the working copy revision");
 				Console.WriteLine("  -s, --restore   Restores AssemblyInfo.cs/vb file from backup");
 				Console.WriteLine("  -v, --version   Shows product version");
@@ -347,6 +370,7 @@ namespace GitRevisionTool
 			}
 
 			ProcessStartInfo psi = new ProcessStartInfo(gitExec, "log -n 1 --format=format:\"%H %ci\"");
+			psi.WorkingDirectory = path;
 			psi.RedirectStandardOutput = true;
 			psi.UseShellExecute = false;
 			Process p = Process.Start(psi);
@@ -368,7 +392,10 @@ namespace GitRevisionTool
 				p.Kill();
 			}
 
-			psi = new ProcessStartInfo(gitExec, "status -s");
+			if (revision == null) return;   // Try no more
+
+			psi = new ProcessStartInfo(gitExec, "status --porcelain");
+			psi.WorkingDirectory = path;
 			psi.RedirectStandardOutput = true;
 			psi.UseShellExecute = false;
 			p = Process.Start(psi);
