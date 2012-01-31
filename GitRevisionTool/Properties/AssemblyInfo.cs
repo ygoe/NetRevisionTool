@@ -32,10 +32,13 @@ using System.Runtime.InteropServices;
 // Sie können alle Werte angeben oder die standardmäßigen Build- und Revisionsnummern 
 // übernehmen, indem Sie "*" eingeben:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.2")]
-[assembly: AssemblyFileVersion("1.2")]
+[assembly: AssemblyVersion("1.2.1")]
+[assembly: AssemblyFileVersion("1.2.1")]
 
 // Version history:
+//
+// 1.2.1 (2012-01-31)
+// * Be silent with the --ignore-missing parameter set to avoid VS build errors
 //
 // 1.2 (2012-01-30)
 // * Added parameter --ignore-missing to ignore missing Git binary or working directory

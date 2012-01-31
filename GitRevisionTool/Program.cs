@@ -61,7 +61,7 @@ namespace GitRevisionTool
 			{
 				if (!hasProcessed)
 				{
-					ProcessDirectory(path);
+					ProcessDirectory(path, ignoreMissing);
 					if (revision == null)
 					{
 						if (ignoreMissing)
@@ -197,7 +197,7 @@ namespace GitRevisionTool
 			{
 				if (!hasProcessed)
 				{
-					ProcessDirectory(path);
+					ProcessDirectory(path, ignoreMissing);
 					if (revision == null)
 					{
 						if (ignoreMissing)
@@ -359,19 +359,26 @@ namespace GitRevisionTool
 			}
 		}
 
-		static void ProcessDirectory(string path)
+		static void ProcessDirectory(string path, bool silent)
 		{
 			// First try to use the installed git binary
 			string gitExec = FindGitBinary();
 			if (gitExec == null)
 			{
-				Console.Error.WriteLine("Error: Git not installed or not found.");
+				if (!silent)
+				{
+					Console.Error.WriteLine("Error: Git not installed or not found.");
+				}
 				return;
 			}
 
 			ProcessStartInfo psi = new ProcessStartInfo(gitExec, "log -n 1 --format=format:\"%H %ci\"");
 			psi.WorkingDirectory = path;
 			psi.RedirectStandardOutput = true;
+			if (silent)
+			{
+				psi.RedirectStandardError = true;
+			}
 			psi.UseShellExecute = false;
 			Process p = Process.Start(psi);
 			string line = null;
@@ -397,6 +404,10 @@ namespace GitRevisionTool
 			psi = new ProcessStartInfo(gitExec, "status --porcelain");
 			psi.WorkingDirectory = path;
 			psi.RedirectStandardOutput = true;
+			if (silent)
+			{
+				psi.RedirectStandardError = true;
+			}
 			psi.UseShellExecute = false;
 			p = Process.Start(psi);
 			line = null;
