@@ -234,7 +234,7 @@ namespace GitRevisionTool
 			value = value.Replace("{time:h}", revTime.ToString("HH"));
 			value = value.Replace("{time:o}", revTime.ToString("%K"));
 			value = Regex.Replace(value, @"\{!:(.*?)\}", delegate(Match m) { return isModified ? m.Groups[1].Value : ""; });
-			value = Regex.Replace(value, @"\{commit:(40|[1-3][0-9]|[5-9])\}", delegate(Match m) { return revision.Substring(0, int.Parse(m.Groups[1].Value)); });
+			value = Regex.Replace(value, @"\{commit:([1-3][0-9]?|40?|[5-9])\}", delegate(Match m) { return revision.Substring(0, int.Parse(m.Groups[1].Value)); });
 			value = Regex.Replace(value, @"\{xmin:([0-9]{4})\}", delegate(Match m) { return HexMinutes(int.Parse(m.Groups[1].Value), 1); });
 			value = Regex.Replace(value, @"\{xmin:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return HexMinutes(int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)); });
 			return value;
@@ -336,7 +336,8 @@ namespace GitRevisionTool
 				Console.WriteLine("                       hm:    HH:MM");
 				Console.WriteLine("                       h      HH");
 				Console.WriteLine("                       o      Time zone like +0100");
-				Console.WriteLine("  {xmin:<year>:<length>");
+				Console.WriteLine("  {xmin:<year>}");
+				Console.WriteLine("  {xmin:<year>:<length>}");
 				Console.WriteLine("                     Prints minutes since year <year>, length <length>");
 				Console.WriteLine("                     in hexadecimal format");
 				Console.WriteLine();
