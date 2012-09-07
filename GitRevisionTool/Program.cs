@@ -16,6 +16,7 @@ namespace GitRevisionTool
 		static bool debugOutput;
 		static bool isModified;
 		static DateTimeOffset revTime;
+		static DateTimeOffset buildTime;
 
 		static int Main(string[] args)
 		{
@@ -37,6 +38,8 @@ namespace GitRevisionTool
 				HandleHelp(clp.IsOptionSet("h"));
 				return 0;
 			}
+
+			buildTime = DateTimeOffset.Now;
 
 			bool patchAssemblyInfoFile = clp.IsOptionSet("a");
 			bool restoreAssemblyInfoFile = clp.IsOptionSet("s");
@@ -224,6 +227,7 @@ namespace GitRevisionTool
 		{
 			value = value.Replace("{!}", isModified ? "!" : "");
 			value = value.Replace("{commit}", revision);
+			
 			value = value.Replace("{date}", revTime.ToString("yyyyMMdd"));
 			value = value.Replace("{date:ymd-}", revTime.ToString("yyyy-MM-dd"));
 			value = value.Replace("{time}", revTime.ToString("HHmmss"));
@@ -233,6 +237,17 @@ namespace GitRevisionTool
 			value = value.Replace("{time:hm:}", revTime.ToString("HH:mm"));
 			value = value.Replace("{time:h}", revTime.ToString("HH"));
 			value = value.Replace("{time:o}", revTime.ToString("%K"));
+
+			value = value.Replace("{builddate}", buildTime.ToString("yyyyMMdd"));
+			value = value.Replace("{builddate:ymd-}", buildTime.ToString("yyyy-MM-dd"));
+			value = value.Replace("{buildtime}", buildTime.ToString("HHmmss"));
+			value = value.Replace("{buildtime:hms}", buildTime.ToString("HHmmss"));
+			value = value.Replace("{buildtime:hms:}", buildTime.ToString("HH:mm:ss"));
+			value = value.Replace("{buildtime:hm}", buildTime.ToString("HHmm"));
+			value = value.Replace("{buildtime:hm:}", buildTime.ToString("HH:mm"));
+			value = value.Replace("{buildtime:h}", buildTime.ToString("HH"));
+			value = value.Replace("{buildtime:o}", buildTime.ToString("%K"));
+
 			value = Regex.Replace(value, @"\{!:(.*?)\}", delegate(Match m) { return isModified ? m.Groups[1].Value : ""; });
 			value = Regex.Replace(value, @"\{commit:([1-3][0-9]?|40?|[5-9])\}", delegate(Match m) { return revision.Substring(0, int.Parse(m.Groups[1].Value)); });
 			value = Regex.Replace(value, @"\{xmin:([0-9]{4})\}", delegate(Match m) { return HexMinutes(int.Parse(m.Groups[1].Value), 1); });
@@ -336,6 +351,8 @@ namespace GitRevisionTool
 				Console.WriteLine("                       hm:    HH:MM");
 				Console.WriteLine("                       h      HH");
 				Console.WriteLine("                       o      Time zone like +0100");
+				Console.WriteLine("  {builddate...}     Prints build date, see {date} for formats");
+				Console.WriteLine("  {buildtime...}     Prints build time, see {time} for formats");
 				Console.WriteLine("  {xmin:<year>}");
 				Console.WriteLine("  {xmin:<year>:<length>}");
 				Console.WriteLine("                     Prints minutes since year <year>, length <length>");
