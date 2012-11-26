@@ -22,20 +22,55 @@ namespace GitRevisionTool
 		{
 			CommandLineParser clp = new CommandLineParser();
 			clp.AddKnownOption("a", "assembly-info");
+			clp.AddKnownOption("b", "test-bmin");
 			clp.AddKnownOption("f", "format", true);
 			clp.AddKnownOption("h", "help");
 			clp.AddKnownOption("i", "ignore-missing");
 			clp.AddKnownOption("r", "revision");
 			clp.AddKnownOption("s", "restore");
 			clp.AddKnownOption("v", "version");
+			clp.AddKnownOption("B", "de-bmin");
 			clp.AddKnownOption("D", "debug");
 			clp.AddKnownOption("M", "stop-if-modified");
+			clp.AddKnownOption("X", "de-xmin");
 
 			debugOutput = clp.IsOptionSet("D");
 
 			if (clp.IsOptionSet("h") || clp.IsOptionSet("v"))
 			{
 				HandleHelp(clp.IsOptionSet("h"));
+				return 0;
+			}
+			if (clp.IsOptionSet("X"))
+			{
+				int baseYear = int.Parse(clp.GetArgument(0));
+				string xmin = clp.GetArgument(1).Trim().ToLowerInvariant();
+				DateTime time = DehexMinutes(baseYear, xmin);
+				Console.WriteLine(time.ToString("yyyy-MM-dd HH:mm") + " UTC");
+				Console.WriteLine(time.ToLocalTime().ToString("yyyy-MM-dd HH:mm K"));
+				return 0;
+			}
+			if (clp.IsOptionSet("B"))
+			{
+				int baseYear = int.Parse(clp.GetArgument(0));
+				string bmin = clp.GetArgument(1).Trim().ToLowerInvariant();
+				DateTime time = Debase36Minutes(baseYear, bmin);
+				Console.WriteLine(time.ToString("yyyy-MM-dd HH:mm") + " UTC");
+				Console.WriteLine(time.ToLocalTime().ToString("yyyy-MM-dd HH:mm K"));
+				return 0;
+			}
+			if (clp.IsOptionSet("b"))
+			{
+				int baseYear = int.Parse(clp.GetArgument(0));
+				revTime = DateTime.UtcNow;
+				long ticks10min = TimeSpan.FromMinutes(10).Ticks;
+				revTime = new DateTime(revTime.Ticks / ticks10min * ticks10min, DateTimeKind.Utc);
+				for (int i = 0; i < 10; i++)
+				{
+					Console.WriteLine(revTime.ToLocalTime().ToString("yyyy-MM-dd HH:mm K") + " = " + Base36Minutes(baseYear, 1));
+					revTime = revTime.AddMinutes(10);
+				}
+				
 				return 0;
 			}
 
@@ -238,6 +273,16 @@ namespace GitRevisionTool
 			value = value.Replace("{time:h}", revTime.ToString("HH"));
 			value = value.Replace("{time:o}", revTime.ToString("%K"));
 
+			value = value.Replace("{utdate}", revTime.ToUniversalTime().ToString("yyyyMMdd"));
+			value = value.Replace("{utdate:ymd-}", revTime.ToUniversalTime().ToString("yyyy-MM-dd"));
+			value = value.Replace("{uttime}", revTime.ToUniversalTime().ToString("HHmmss"));
+			value = value.Replace("{uttime:hms}", revTime.ToUniversalTime().ToString("HHmmss"));
+			value = value.Replace("{uttime:hms:}", revTime.ToUniversalTime().ToString("HH:mm:ss"));
+			value = value.Replace("{uttime:hm}", revTime.ToUniversalTime().ToString("HHmm"));
+			value = value.Replace("{uttime:hm:}", revTime.ToUniversalTime().ToString("HH:mm"));
+			value = value.Replace("{uttime:h}", revTime.ToUniversalTime().ToString("HH"));
+			value = value.Replace("{uttime:o}", revTime.ToUniversalTime().ToString("%K"));
+
 			value = value.Replace("{builddate}", buildTime.ToString("yyyyMMdd"));
 			value = value.Replace("{builddate:ymd-}", buildTime.ToString("yyyy-MM-dd"));
 			value = value.Replace("{buildtime}", buildTime.ToString("HHmmss"));
@@ -248,20 +293,95 @@ namespace GitRevisionTool
 			value = value.Replace("{buildtime:h}", buildTime.ToString("HH"));
 			value = value.Replace("{buildtime:o}", buildTime.ToString("%K"));
 
+			value = value.Replace("{utbuilddate}", buildTime.ToUniversalTime().ToString("yyyyMMdd"));
+			value = value.Replace("{utbuilddate:ymd-}", buildTime.ToUniversalTime().ToString("yyyy-MM-dd"));
+			value = value.Replace("{utbuildtime}", buildTime.ToUniversalTime().ToString("HHmmss"));
+			value = value.Replace("{utbuildtime:hms}", buildTime.ToUniversalTime().ToString("HHmmss"));
+			value = value.Replace("{utbuildtime:hms:}", buildTime.ToUniversalTime().ToString("HH:mm:ss"));
+			value = value.Replace("{utbuildtime:hm}", buildTime.ToUniversalTime().ToString("HHmm"));
+			value = value.Replace("{utbuildtime:hm:}", buildTime.ToUniversalTime().ToString("HH:mm"));
+			value = value.Replace("{utbuildtime:h}", buildTime.ToUniversalTime().ToString("HH"));
+			value = value.Replace("{utbuildtime:o}", buildTime.ToUniversalTime().ToString("%K"));
+
 			value = Regex.Replace(value, @"\{!:(.*?)\}", delegate(Match m) { return isModified ? m.Groups[1].Value : ""; });
 			value = Regex.Replace(value, @"\{commit:([1-3][0-9]?|40?|[5-9])\}", delegate(Match m) { return revision.Substring(0, int.Parse(m.Groups[1].Value)); });
+			
 			value = Regex.Replace(value, @"\{xmin:([0-9]{4})\}", delegate(Match m) { return HexMinutes(int.Parse(m.Groups[1].Value), 1); });
 			value = Regex.Replace(value, @"\{xmin:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return HexMinutes(int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)); });
+			value = Regex.Replace(value, @"\{bmin:([0-9]{4})\}", delegate(Match m) { return Base36Minutes(int.Parse(m.Groups[1].Value), 1); });
+			value = Regex.Replace(value, @"\{bmin:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return Base36Minutes(int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)); });
+			
+			value = Regex.Replace(value, @"\{Xmin:([0-9]{4})\}", delegate(Match m) { return HexMinutes(int.Parse(m.Groups[1].Value), 1).ToUpperInvariant(); });
+			value = Regex.Replace(value, @"\{Xmin:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return HexMinutes(int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)).ToUpperInvariant(); });
+			value = Regex.Replace(value, @"\{Bmin:([0-9]{4})\}", delegate(Match m) { return Base36Minutes(int.Parse(m.Groups[1].Value), 1).ToUpperInvariant(); });
+			value = Regex.Replace(value, @"\{Bmin:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return Base36Minutes(int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)).ToUpperInvariant(); });
 			return value;
 		}
 
 		static string HexMinutes(int baseYear, int length)
 		{
-			int min = (int) (revTime - new DateTime(baseYear, 1, 1)).TotalMinutes;
+			int min = (int) (revTime.UtcDateTime - new DateTime(baseYear, 1, 1)).TotalMinutes;
 			if (min < 0)
 				return "-" + (-min).ToString("x" + length);
 			else
 				return min.ToString("x" + length);
+		}
+
+		static DateTime DehexMinutes(int baseYear, string xmin)
+		{
+			bool negative = false;
+			if (xmin.StartsWith("-"))
+			{
+				negative = true;
+				xmin = xmin.Substring(1);
+			}
+			int min = int.Parse(xmin, System.Globalization.NumberStyles.AllowHexSpecifier);
+			return new DateTime(baseYear, 1, 1).AddMinutes(negative ? -min : min);
+		}
+
+		static string Base36Minutes(int baseYear, int length)
+		{
+			int min = (int) ((revTime.UtcDateTime - new DateTime(baseYear, 1, 1)).TotalMinutes / 10);
+			bool negative = false;
+			if (min < 0)
+			{
+				negative = true;
+				min = -min;
+			}
+			string s = "";
+			while (min > 0)
+			{
+				int digit = min % 36;
+				min = min / 36;
+				if (digit < 10)
+					s = digit + s;
+				else
+					s = Char.ConvertFromUtf32('a' + (digit - 10)) + s;
+			}
+			return (negative ? "-" : "") + s.PadLeft(length, '0');
+		}
+
+		static DateTime Debase36Minutes(int baseYear, string bmin)
+		{
+			bool negative = false;
+			if (bmin.StartsWith("-"))
+			{
+				negative = true;
+				bmin = bmin.Substring(1);
+			}
+			int min = 0;
+			while (bmin.Length > 0)
+			{
+				int digit;
+				if (bmin[0] <= '9')
+					digit = bmin[0] - '0';
+				else
+					digit = bmin[0] - 'a' + 10;
+				min = min * 36 + digit;
+				bmin = bmin.Substring(1);
+			}
+			min *= 10;
+			return new DateTime(baseYear, 1, 1).AddMinutes(negative ? -min : min);
 		}
 
 		static void HandleHelp(bool showHelp)
@@ -309,6 +429,8 @@ namespace GitRevisionTool
 				Console.WriteLine("Options:");
 				Console.WriteLine("  -a, --assembly-info");
 				Console.WriteLine("                  Patches the AssemblyInfo.cs/vb file's version specifications");   // 78c
+				Console.WriteLine("  -b, --test-bmin <year>");
+				Console.WriteLine("                  Prints the current and next few bmin values");
 				Console.WriteLine("  -f, --format    Prints the revision string with the specified format");
 				Console.WriteLine("  -h, --help      Shows this help page");
 				Console.WriteLine("  -i, --ignore-missing");
@@ -316,9 +438,13 @@ namespace GitRevisionTool
 				Console.WriteLine("  -r, --revision  Shows the working copy revision");
 				Console.WriteLine("  -s, --restore   Restores AssemblyInfo.cs/vb file from backup");
 				Console.WriteLine("  -v, --version   Shows product version");
+				Console.WriteLine("  -B, --de-bmin <year> <bmin>");
+				Console.WriteLine("                  Decodes a bmin value to UTC and local time");
 				Console.WriteLine("  -D, --debug     Shows debug information");
 				Console.WriteLine("  -M, --stop-if-modified");
 				Console.WriteLine("                  Stops if the working copy contains uncommited changes");
+				Console.WriteLine("  -X, --de-xmin <year> <xmin>");
+				Console.WriteLine("                  Decodes an xmin value to UTC and local time");
 				Console.WriteLine();
 				Console.WriteLine("The path parameter is used to locate the project's AssemblyInfo files that");
 				Console.WriteLine("shall be updated. Therefore the path parameter must be the project's root");
@@ -357,6 +483,15 @@ namespace GitRevisionTool
 				Console.WriteLine("  {xmin:<year>:<length>}");
 				Console.WriteLine("                     Prints minutes since year <year>, length <length>");
 				Console.WriteLine("                     in hexadecimal format");
+				Console.WriteLine("  {bmin:<year>}");
+				Console.WriteLine("  {bmin:<year>:<length>}");
+				Console.WriteLine("                     Prints 10-minutes since year <year>, length <length>");
+				Console.WriteLine("                     in base36 format");
+				Console.WriteLine();
+				Console.WriteLine("The following placeholders variants are available:");
+				Console.WriteLine("  {utdate} and {uttime} print commit date/time in UTC.");
+				Console.WriteLine("  {utbuilddate} and {utbuildtime} print build date/time in UTC.");
+				Console.WriteLine("  {Xmin} and {Bmin} use uppercase letters.");
 				Console.WriteLine();
 				Console.WriteLine("Example for C#:");
 				Console.WriteLine("  [assembly: AssemblyInformationalVersion(\"MyApp {commit:8}/{date}\")]");

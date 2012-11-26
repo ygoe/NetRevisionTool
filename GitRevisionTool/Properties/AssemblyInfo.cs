@@ -32,10 +32,18 @@ using System.Runtime.InteropServices;
 // Sie können alle Werte angeben oder die standardmäßigen Build- und Revisionsnummern 
 // übernehmen, indem Sie "*" eingeben:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.3")]
-[assembly: AssemblyFileVersion("1.3")]
+[assembly: AssemblyVersion("1.4")]
+[assembly: AssemblyFileVersion("1.4")]
 
 // Version history:
+//
+// 1.4 (2012-11-26)
+// * Added {bmin} base36 format with 10-minute intervals for higher compression of the time values
+//   (4 bmin digits are good for 30 years, would need 6 digits with xmin)
+// * Added {ut...} variants for commit/build date/time formats in UTC instead of local time
+// * Added command line options to decode xmin and bmin values to a readable time (UTC and local)
+// * Added command line option to check the current and upcoming bmin values (in case the text is unwanted)
+// * Fixed {xmin} and {bmin} time zone handling, it is now using UTC
 //
 // 1.3 (2012-09-07)
 // * Added {builddate} and {buildtime} placeholders to insert the build time (i.e. current time)
