@@ -12,6 +12,8 @@ namespace SvnRevisionTool
 {
 	class Program
 	{
+		static bool multiProjectMode;
+		static bool onlyInformationalVersion;
 		static string repositoryUrl;
 		static int revision;
 		static bool mixedRevisions;
@@ -28,6 +30,7 @@ namespace SvnRevisionTool
 			clp.AddKnownOption("f", "format", true);
 			clp.AddKnownOption("h", "help");
 			clp.AddKnownOption("i", "ignore-missing");
+			clp.AddKnownOption("m", "multi-project");
 			clp.AddKnownOption("r", "revision");
 			clp.AddKnownOption("s", "restore");
 			clp.AddKnownOption("v", "version");
@@ -80,10 +83,11 @@ namespace SvnRevisionTool
 
 			bool patchAssemblyInfoFile = clp.IsOptionSet("a");
 			bool restoreAssemblyInfoFile = clp.IsOptionSet("s");
+			multiProjectMode = clp.IsOptionSet("m");
 			bool showRevision = clp.IsOptionSet("r");
 			bool stopIfModified = clp.IsOptionSet("M");
 			bool ignoreMissing = clp.IsOptionSet("i");
-			bool onlyInformationalVersion = clp.IsOptionSet("I");
+			onlyInformationalVersion = clp.IsOptionSet("I");
 			string path = clp.GetArgument(0);
 			string customFormat = "{!}{commit}";
 			if (clp.IsOptionSet("f"))
@@ -97,6 +101,50 @@ namespace SvnRevisionTool
 				Console.Error.WriteLine("Working on path " + path);
 
 			bool hasProcessed = false;
+
+			List<string> projectDirs = new List<string>();
+			if (multiProjectMode)
+			{
+				// Treat the single directory argument as the solution file name
+				if (!path.ToLowerInvariant().EndsWith(".sln"))
+				{
+					Console.Error.WriteLine("Error: Specified file name is invalid. Only *.sln files accepted in\nmulti-project mode.");
+					return 1;
+				}
+				if (!File.Exists(path))
+				{
+					Console.Error.WriteLine("Error: Specified solution file does not exist.");
+					return 1;
+				}
+
+				// Scan the solution file for projects and add them to the list
+				string solutionDir = Path.GetDirectoryName(path);
+				using (StreamReader sr = new StreamReader(path))
+				{
+					while (!sr.EndOfStream)
+					{
+						string line = sr.ReadLine();
+						Match m = Regex.Match(line, @"^Project\(.+\) = "".+"", ""(.+\.(?:csproj|vbproj))""");
+						if (m.Success)
+						{
+							string projectPath = Path.Combine(solutionDir, m.Groups[1].Value);
+							string projectDir = Path.GetDirectoryName(projectPath);
+							if (debugOutput)
+								Console.Error.WriteLine("Add project in " + projectDir);
+							projectDirs.Add(projectDir);
+						}
+					}
+				}
+
+				if (projectDirs.Count == 0)
+				{
+					Console.Error.WriteLine("Error: Specified solution file contains no projects.");
+					return 1;
+				}
+
+				// From now on, work with the solution directory as default path to get the revision of
+				path = solutionDir;
+			}
 
 			if (patchAssemblyInfoFile)
 			{
@@ -124,140 +172,46 @@ namespace SvnRevisionTool
 					return 1;
 				}
 
-				string aiFilename = Path.Combine(path, "Properties\\AssemblyInfo.cs");
-				if (!File.Exists(aiFilename))
+				if (multiProjectMode)
 				{
-					aiFilename = Path.Combine(path, "My Project\\AssemblyInfo.vb");
-				}
-				if (!File.Exists(aiFilename))
-				{
-					aiFilename = Path.Combine(path, "AssemblyInfo.cs");
-				}
-				if (!File.Exists(aiFilename))
-				{
-					aiFilename = Path.Combine(path, "AssemblyInfo.vb");
-				}
-				if (!File.Exists(aiFilename))
-				{
-					Console.Error.WriteLine("Error: Assembly info file not found.");
-					return 1;
-				}
-				string aiBackup = aiFilename + ".bak";
-				if (!File.Exists(aiBackup))
-				{
-					File.Copy(aiFilename, aiBackup);
-					if (debugOutput)
-						Console.Error.WriteLine("Created backup to " + Path.GetFileName(aiBackup));
-				}
-
-				if (debugOutput)
-					Console.Error.WriteLine("Patching " + Path.GetFileName(aiFilename) + "...");
-
-				string attrStart = null, attrEnd = null;
-				switch (Path.GetExtension(aiFilename).ToLower())
-				{
-					case ".cs":
-						attrStart = "[";
-						attrEnd = "]";
-						break;
-					case ".vb":
-						attrStart = "<";
-						attrEnd = ">";
-						break;
-					default:
-						Console.Error.WriteLine("Logic error: invalid AssemblyInfo file extension: " + Path.GetExtension(aiFilename).ToLower());
+					bool success = true;
+					foreach (string projectDir in projectDirs)
+					{
+						success &= PatchAssemblyInfoFile(projectDir);
+					}
+					if (!success)
+					{
 						return 1;
-				}
-
-				StreamReader sr = new StreamReader(aiBackup, Encoding.Default, true);
-				sr.Peek();
-				StreamWriter sw = new StreamWriter(aiFilename, false, sr.CurrentEncoding);
-
-				while (!sr.EndOfStream)
-				{
-					string line = sr.ReadLine();
-
-					Match m;
-					if (!onlyInformationalVersion)
-					{
-						m = Regex.Match(
-							line,
-							@"^(\s*\" + attrStart + @"\s*assembly\s*:\s*AssemblyVersion\s*\(\s*""[0-9]+\.[0-9]+\.[0-9]+\.)[0-9]+(""\s*\)\s*\" + attrEnd + @".*)$",
-							RegexOptions.IgnoreCase);
-						if (m.Success)
-						{
-							int rev = revision;
-							if (rev > UInt16.MaxValue)
-								rev = UInt16.MaxValue;   // TODO: Add options of different behaviour
-							line = m.Groups[1].Value + rev + m.Groups[2].Value;
-							if (debugOutput)
-								Console.Error.WriteLine("Found AssemblyVersion attribute");
-						}
-						m = Regex.Match(
-							line,
-							@"^(\s*\" + attrStart + @"\s*assembly\s*:\s*AssemblyFileVersion\s*\(\s*""[0-9]+\.[0-9]+\.[0-9]+\.)[0-9]+(""\s*\)\s*\" + attrEnd + @".*)$",
-							RegexOptions.IgnoreCase);
-						if (m.Success)
-						{
-							string rev = revision.ToString();
-							line = m.Groups[1].Value + rev + m.Groups[2].Value;
-							if (debugOutput)
-								Console.Error.WriteLine("Found AssemblyFileVersion attribute");
-						}
 					}
-					m = Regex.Match(
-						line,
-						@"^(\s*\" + attrStart + @"\s*assembly\s*:\s*AssemblyInformationalVersion\s*\(\s*"")(.*)(""\s*\)\s*\" + attrEnd + @".*)$",
-						RegexOptions.IgnoreCase);
-					if (m.Success)
-					{
-						string value = m.Groups[2].Value;
-						value = ResolveFormat(value);
-						line = m.Groups[1].Value + value + m.Groups[3].Value;
-						if (debugOutput)
-							Console.Error.WriteLine("Found AssemblyInformationalVersion attribute");
-					}
-
-					sw.WriteLine(line);
-				}
-
-				sr.Close();
-				sw.Close();
-				if (debugOutput)
-					Console.Error.WriteLine("Patched " + Path.GetFileName(aiFilename));
-			}
-			if (restoreAssemblyInfoFile)
-			{
-				string aiFilename = Path.Combine(path, "Properties\\AssemblyInfo.cs");
-				if (!File.Exists(aiFilename))
-				{
-					aiFilename = Path.Combine(path, "My Project\\AssemblyInfo.vb");
-				}
-				if (!File.Exists(aiFilename))
-				{
-					aiFilename = Path.Combine(path, "AssemblyInfo.cs");
-				}
-				if (!File.Exists(aiFilename))
-				{
-					aiFilename = Path.Combine(path, "AssemblyInfo.vb");
-				}
-				if (!File.Exists(aiFilename))
-				{
-					Console.Error.WriteLine("Error: Assembly info file not found.");
-					return 1;
-				}
-				string aiBackup = aiFilename + ".bak";
-				if (File.Exists(aiBackup))
-				{
-					File.Delete(aiFilename);
-					File.Move(aiBackup, aiFilename);
-					if (debugOutput)
-						Console.Error.WriteLine("Restored " + Path.GetFileName(aiBackup));
 				}
 				else
 				{
-					if (debugOutput)
-						Console.Error.WriteLine(Path.GetFileName(aiBackup) + " does not exist");
+					if (!PatchAssemblyInfoFile(path))
+					{
+						return 1;
+					}
+				}
+			}
+			if (restoreAssemblyInfoFile)
+			{
+				if (multiProjectMode)
+				{
+					bool success = true;
+					foreach (string projectDir in projectDirs)
+					{
+						success &= RestoreAssemblyInfoFile(projectDir);
+					}
+					if (!success)
+					{
+						return 1;
+					}
+				}
+				else
+				{
+					if (!RestoreAssemblyInfoFile(path))
+					{
+						return 1;
+					}
 				}
 			}
 			if (showRevision)
@@ -284,6 +238,153 @@ namespace SvnRevisionTool
 			}
 
 			return 0;
+		}
+
+		static bool PatchAssemblyInfoFile(string path)
+		{
+			string aiFilename = Path.Combine(path, "Properties\\AssemblyInfo.cs");
+			if (!File.Exists(aiFilename))
+			{
+				aiFilename = Path.Combine(path, "My Project\\AssemblyInfo.vb");
+			}
+			if (!File.Exists(aiFilename))
+			{
+				aiFilename = Path.Combine(path, "AssemblyInfo.cs");
+			}
+			if (!File.Exists(aiFilename))
+			{
+				aiFilename = Path.Combine(path, "AssemblyInfo.vb");
+			}
+			if (!File.Exists(aiFilename))
+			{
+				if (multiProjectMode)
+					Console.Error.WriteLine("Project: " + path);
+				Console.Error.WriteLine("Error: Assembly info file not found.");
+				return false;
+			}
+			string aiBackup = aiFilename + ".bak";
+			if (!File.Exists(aiBackup))
+			{
+				File.Copy(aiFilename, aiBackup);
+				if (debugOutput)
+					Console.Error.WriteLine("Created backup to " + Path.GetFileName(aiBackup));
+			}
+
+			if (debugOutput)
+				Console.Error.WriteLine("Patching " + Path.GetFileName(aiFilename) + "...");
+
+			string attrStart = null, attrEnd = null;
+			switch (Path.GetExtension(aiFilename).ToLower())
+			{
+				case ".cs":
+					attrStart = "[";
+					attrEnd = "]";
+					break;
+				case ".vb":
+					attrStart = "<";
+					attrEnd = ">";
+					break;
+				default:
+					if (multiProjectMode)
+						Console.Error.WriteLine("Project: " + path);
+					Console.Error.WriteLine("Logic error: invalid AssemblyInfo file extension: " + Path.GetExtension(aiFilename).ToLower());
+					return false;
+			}
+
+			StreamReader sr = new StreamReader(aiBackup, Encoding.Default, true);
+			sr.Peek();
+			StreamWriter sw = new StreamWriter(aiFilename, false, sr.CurrentEncoding);
+
+			while (!sr.EndOfStream)
+			{
+				string line = sr.ReadLine();
+
+				Match m;
+				if (!onlyInformationalVersion)
+				{
+					m = Regex.Match(
+						line,
+						@"^(\s*\" + attrStart + @"\s*assembly\s*:\s*AssemblyVersion\s*\(\s*""[0-9]+\.[0-9]+\.[0-9]+\.)[0-9]+(""\s*\)\s*\" + attrEnd + @".*)$",
+						RegexOptions.IgnoreCase);
+					if (m.Success)
+					{
+						int rev = revision;
+						if (rev > UInt16.MaxValue)
+							rev = UInt16.MaxValue;   // TODO: Add options of different behaviour
+						line = m.Groups[1].Value + rev + m.Groups[2].Value;
+						if (debugOutput)
+							Console.Error.WriteLine("Found AssemblyVersion attribute");
+					}
+					m = Regex.Match(
+						line,
+						@"^(\s*\" + attrStart + @"\s*assembly\s*:\s*AssemblyFileVersion\s*\(\s*""[0-9]+\.[0-9]+\.[0-9]+\.)[0-9]+(""\s*\)\s*\" + attrEnd + @".*)$",
+						RegexOptions.IgnoreCase);
+					if (m.Success)
+					{
+						string rev = revision.ToString();
+						line = m.Groups[1].Value + rev + m.Groups[2].Value;
+						if (debugOutput)
+							Console.Error.WriteLine("Found AssemblyFileVersion attribute");
+					}
+				}
+				m = Regex.Match(
+					line,
+					@"^(\s*\" + attrStart + @"\s*assembly\s*:\s*AssemblyInformationalVersion\s*\(\s*"")(.*)(""\s*\)\s*\" + attrEnd + @".*)$",
+					RegexOptions.IgnoreCase);
+				if (m.Success)
+				{
+					string value = m.Groups[2].Value;
+					value = ResolveFormat(value);
+					line = m.Groups[1].Value + value + m.Groups[3].Value;
+					if (debugOutput)
+						Console.Error.WriteLine("Found AssemblyInformationalVersion attribute");
+				}
+
+				sw.WriteLine(line);
+			}
+
+			sr.Close();
+			sw.Close();
+			if (debugOutput)
+				Console.Error.WriteLine("Patched " + Path.GetFileName(aiFilename));
+			return true;
+		}
+
+		static bool RestoreAssemblyInfoFile(string path)
+		{
+			string aiFilename = Path.Combine(path, "Properties\\AssemblyInfo.cs");
+			if (!File.Exists(aiFilename))
+			{
+				aiFilename = Path.Combine(path, "My Project\\AssemblyInfo.vb");
+			}
+			if (!File.Exists(aiFilename))
+			{
+				aiFilename = Path.Combine(path, "AssemblyInfo.cs");
+			}
+			if (!File.Exists(aiFilename))
+			{
+				aiFilename = Path.Combine(path, "AssemblyInfo.vb");
+			}
+			if (!File.Exists(aiFilename))
+			{
+				Console.Error.WriteLine("Error: Assembly info file not found.");
+				return false;
+			}
+			string aiBackup = aiFilename + ".bak";
+			if (File.Exists(aiBackup))
+			{
+				File.Delete(aiFilename);
+				File.Move(aiBackup, aiFilename);
+				if (debugOutput)
+					Console.Error.WriteLine("Restored " + Path.GetFileName(aiBackup));
+			}
+			else
+			{
+				if (debugOutput)
+					Console.Error.WriteLine(Path.GetFileName(aiBackup) + " does not exist");
+				return false;
+			}
+			return true;
 		}
 
 		static string ResolveFormat(string value)
@@ -463,6 +564,8 @@ namespace SvnRevisionTool
 				Console.WriteLine("  -h, --help      Shows this help page");
 				Console.WriteLine("  -i, --ignore-missing");
 				Console.WriteLine("                  Does nothing if this is not a Subversion working directory");
+				Console.WriteLine("  -m, --multi-project");
+				Console.WriteLine("                  Processes all projects in the solution specified by <path>");
 				Console.WriteLine("  -r, --revision  Shows the working copy revision");
 				Console.WriteLine("  -s, --restore   Restores AssemblyInfo.cs/vb file from backup");
 				Console.WriteLine("  -v, --version   Shows product version");

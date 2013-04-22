@@ -32,10 +32,13 @@ using System.Runtime.InteropServices;
 // Sie können alle Werte angeben oder die standardmäßigen Build- und Revisionsnummern 
 // übernehmen, indem Sie "*" eingeben:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.4")]
-[assembly: AssemblyFileVersion("1.4")]
+[assembly: AssemblyVersion("1.5")]
+[assembly: AssemblyFileVersion("1.5")]
 
 // Version history:
+//
+// 1.5 (2013-04-22+)
+// * Added multi-project mode
 //
 // 1.4 (2013-04-11)
 // * Backport from GitRevisionTool 1.4
