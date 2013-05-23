@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("GitRevisionTool")]
-[assembly: AssemblyCopyright("© 2011-2012 Yves Goergen")]
+[assembly: AssemblyCopyright("© 2011-2013 Yves Goergen")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -32,10 +32,13 @@ using System.Runtime.InteropServices;
 // Sie können alle Werte angeben oder die standardmäßigen Build- und Revisionsnummern 
 // übernehmen, indem Sie "*" eingeben:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.4")]
-[assembly: AssemblyFileVersion("1.4")]
+[assembly: AssemblyVersion("1.5")]
+[assembly: AssemblyFileVersion("1.5")]
 
 // Version history:
+//
+// 1.5 (2013-05-23)
+// * Added multi-project mode (ported from SvnRevisionTool 1.5)
 //
 // 1.4 (2012-11-26)
 // * Added {bmin} base36 format with 10-minute intervals for higher compression of the time values
