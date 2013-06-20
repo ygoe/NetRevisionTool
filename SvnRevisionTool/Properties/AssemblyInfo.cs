@@ -32,10 +32,13 @@ using System.Runtime.InteropServices;
 // Sie können alle Werte angeben oder die standardmäßigen Build- und Revisionsnummern 
 // übernehmen, indem Sie "*" eingeben:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.5")]
-[assembly: AssemblyFileVersion("1.5")]
+[assembly: AssemblyVersion("1.5.1")]
+[assembly: AssemblyFileVersion("1.5.1")]
 
 // Version history:
+//
+// 1.5.1 (2013-06-20)
+// * Fixed version 12 (SVN 1.7) detection with no line break
 //
 // 1.5 (2013-04-22+)
 // * Added multi-project mode

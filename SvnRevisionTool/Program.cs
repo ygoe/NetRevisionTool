@@ -703,27 +703,46 @@ namespace SvnRevisionTool
 						{
 							// Text format
 							int lineBreak = data.IndexOf('\n');
+							if (lineBreak == -1)
+							{
+								lineBreak = data.Length;
+							}
 							fileVersion = data.Substring(0, lineBreak);
-							data = data.Substring(lineBreak + 1);
+							if (data.Length > lineBreak + 1)
+							{
+								data = data.Substring(lineBreak + 1);
+							}
+							else
+							{
+								data = "";
+							}
 
 							if (fileVersion == "8")
 							{
 								// Format 1.4.x
 								directFile = true;
+								if (debugOutput)
+									Console.Error.WriteLine("SVN 1.4 client format, directly reading the files.");
 							}
 							else if (fileVersion == "9")
 							{
 								// Format 1.5.x
 								directFile = true;
+								if (debugOutput)
+									Console.Error.WriteLine("SVN 1.5 client format, directly reading the files.");
 							}
 							else if (fileVersion == "10")
 							{
 								// Format 1.6.x
 								directFile = true;
+								if (debugOutput)
+									Console.Error.WriteLine("SVN 1.6 client format, directly reading the files.");
 							}
 							else if (fileVersion == "12")
 							{
 								// Format 1.7.x
+								if (debugOutput)
+									Console.Error.WriteLine("SVN 1.7 client format, using installed SVN command-line client.");
 							}
 							else
 							{
@@ -875,6 +894,11 @@ namespace SvnRevisionTool
 						ProcessDirectory(subdir, silent, false);
 					}
 				}
+			}
+			else
+			{
+				if (debugOutput)
+					Console.Error.WriteLine("Warning: .svn subdirectory does not exist, nothing to do here.");
 			}
 
 			if (!directFile)
