@@ -605,7 +605,7 @@ namespace SvnRevisionTool
 				Console.WriteLine("  {date}             Prints commit date as YYYYMMDD");
 				Console.WriteLine("  {date:<format>}    Prints commit data with format:");
 				Console.WriteLine("                       ymd-   YYYY-MM-DD");
-				Console.WriteLine("  {time}             Prints commit time as HHMMS");
+				Console.WriteLine("  {time}             Prints commit time as HHMMSS");
 				Console.WriteLine("  {time:<format>}    Prints commit time with format:");
 				Console.WriteLine("                       hms    HHMMSS");
 				Console.WriteLine("                       hms:   HH:MM:SS");
