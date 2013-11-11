@@ -12,6 +12,8 @@ namespace SvnRevisionTool
 {
 	class Program
 	{
+		static string svnExeName = Environment.OSVersion.Platform == PlatformID.Unix ? @"svn" : @"svn.exe";
+		static string svnversionExeName = Environment.OSVersion.Platform == PlatformID.Unix ? @"svnversion" : @"svnversion.exe";
 		static bool multiProjectMode;
 		static bool onlyInformationalVersion;
 		static string repositoryUrl;
@@ -242,10 +244,10 @@ namespace SvnRevisionTool
 
 		static bool PatchAssemblyInfoFile(string path)
 		{
-			string aiFilename = Path.Combine(path, "Properties\\AssemblyInfo.cs");
+			string aiFilename = Path.Combine(path, Path.Combine("Properties", "AssemblyInfo.cs"));
 			if (!File.Exists(aiFilename))
 			{
-				aiFilename = Path.Combine(path, "My Project\\AssemblyInfo.vb");
+				aiFilename = Path.Combine(path, Path.Combine("My Project", "AssemblyInfo.vb"));
 			}
 			if (!File.Exists(aiFilename))
 			{
@@ -352,10 +354,10 @@ namespace SvnRevisionTool
 
 		static bool RestoreAssemblyInfoFile(string path)
 		{
-			string aiFilename = Path.Combine(path, "Properties\\AssemblyInfo.cs");
+			string aiFilename = Path.Combine(path, Path.Combine("Properties", "AssemblyInfo.cs"));
 			if (!File.Exists(aiFilename))
 			{
-				aiFilename = Path.Combine(path, "My Project\\AssemblyInfo.vb");
+				aiFilename = Path.Combine(path, Path.Combine("My Project", "AssemblyInfo.vb"));
 			}
 			if (!File.Exists(aiFilename))
 			{
@@ -595,6 +597,7 @@ namespace SvnRevisionTool
 				Console.WriteLine("The following assembly attributes are supported:");
 				Console.WriteLine("  AssemblyVersion(\"0.0.0.<rev>\")");
 				Console.WriteLine("  AssemblyFileVersion(\"0.0.0.<rev>\")");
+				Console.WriteLine("    (Use a number instead of <rev>, it will always be replaced automatically.)");   // 78c
 				Console.WriteLine("  AssemblyInformationalVersion(\"... {commit} {date} {time} ...\")");
 				Console.WriteLine();
 				Console.WriteLine("The following placeholders are supported:");
@@ -624,7 +627,7 @@ namespace SvnRevisionTool
 				Console.WriteLine("                     Prints 10-minutes since year <year>, length <length>");
 				Console.WriteLine("                     in base36 format");
 				Console.WriteLine();
-				Console.WriteLine("The following placeholders variants are available:");
+				Console.WriteLine("The following placeholder variants are available:");
 				Console.WriteLine("  {utdate} and {uttime} print commit date/time in UTC.");
 				Console.WriteLine("  {utbuilddate} and {utbuildtime} print build date/time in UTC.");
 				Console.WriteLine("  {Xmin} and {Bmin} use uppercase letters.");
@@ -642,13 +645,14 @@ namespace SvnRevisionTool
 				Console.WriteLine("  SET revid=241");
 				Console.WriteLine("(Write to a file outside the SVN working directory to avoid false modify.)");
 				Console.WriteLine();
-				Console.WriteLine("SVN client formats supported are 1.4, 1.5 and 1.6.");
-				// TODO:
-				//Console.WriteLine("Git (msysGit) must be installed in one of %ProgramFiles*%\\Git*.");
-				//Console.WriteLine();
+				Console.WriteLine("SVN client formats 1.4-1.6 are natively supported, newer formats require the");
+				Console.WriteLine("SVN tool to be available on the system.");
+				Console.WriteLine();
 				Console.WriteLine("ATTENTION: Be sure not to have the AssemblyInfo file opened in the IDE while");
 				Console.WriteLine("           building the project, or the version modifications will be ignored");
 				Console.WriteLine("           by the compiler.");
+				Console.WriteLine();
+				Console.WriteLine("WARNING: This tool may fail with SVN externals, they're untested.");
 			}
 		}
 
@@ -689,185 +693,188 @@ namespace SvnRevisionTool
 			string svnSubdir = Path.Combine(path, ".svn");
 			if (Directory.Exists(svnSubdir))
 			{
-				try
+				if (File.Exists(Path.Combine(svnSubdir, "entries")))
 				{
-					using (StreamReader sr = new StreamReader(Path.Combine(svnSubdir, "entries")))
+					try
 					{
-						string data = sr.ReadToEnd();
+						using (StreamReader sr = new StreamReader(Path.Combine(svnSubdir, "entries")))
+						{
+							string data = sr.ReadToEnd();
 
-						if (data.StartsWith("<?xml"))
-						{
-							Console.Error.WriteLine("Error: Old XML file format is not implemented.");
-						}
-						else
-						{
-							// Text format
-							int lineBreak = data.IndexOf('\n');
-							if (lineBreak == -1)
+							if (data.StartsWith("<?xml"))
 							{
-								lineBreak = data.Length;
-							}
-							fileVersion = data.Substring(0, lineBreak);
-							if (data.Length > lineBreak + 1)
-							{
-								data = data.Substring(lineBreak + 1);
+								Console.Error.WriteLine("Error: Old XML file format is not implemented.");
 							}
 							else
 							{
-								data = "";
-							}
-
-							if (fileVersion == "8")
-							{
-								// Format 1.4.x
-								directFile = true;
-								if (debugOutput)
-									Console.Error.WriteLine("SVN 1.4 client format, directly reading the files.");
-							}
-							else if (fileVersion == "9")
-							{
-								// Format 1.5.x
-								directFile = true;
-								if (debugOutput)
-									Console.Error.WriteLine("SVN 1.5 client format, directly reading the files.");
-							}
-							else if (fileVersion == "10")
-							{
-								// Format 1.6.x
-								directFile = true;
-								if (debugOutput)
-									Console.Error.WriteLine("SVN 1.6 client format, directly reading the files.");
-							}
-							else if (fileVersion == "12")
-							{
-								// Format 1.7.x
-								if (debugOutput)
-									Console.Error.WriteLine("SVN 1.7 client format, using installed SVN command-line client.");
-							}
-							else
-							{
-								Console.Error.WriteLine("Warning: Unrecognised SVN version in " + Path.Combine(path, ".svn\\entries") + ": " + fileVersion);
-							}
-
-							if (directFile)
-							{
-								// Source: http://gerardlee.wordpress.com/2009/11/10/python-script-use-to-change-svn-working-copy-format/
-								//  0 name
-								//  1 kind
-								//  2 revision
-								//  3 url
-								//  4 repos
-								//  5 schedule
-								//  6 text-time
-								//  7 checksum
-								//  8 committed-date
-								//  9 committed-rev
-								// 10 last-author
-								// 11 has-props
-								// 12 has-prop-mods
-								// 13 cachable-props
-								// 14 present-props
-								// 15 conflict-old
-								// 16 conflict-new
-								// 17 conflict-wrk
-								// 18 prop-reject-file
-								// 19 copied
-								// 20 copyfrom-url
-								// 21 copyfrom-rev
-								// 22 deleted
-								// 23 absent
-								// 24 incomplete
-								// 25 uuid
-								// 26 lock-token
-								// 27 lock-owner
-								// 28 lock-comment
-								// 29 lock-creation-date
-								// 30 changelist (since 1.5)
-								// 31 keep-local (since 1.5)
-								// 32 working-size
-								// 33 depth (since 1.5)
-								// 34 tree-conflicts (since 1.6)
-								// 35 file-external (since 1.6)
-
-								string[] sections = data.Split(new string[] { "\f\n" }, StringSplitOptions.None);
-
-								foreach (string sectionData in sections)
+								// Text format
+								int lineBreak = data.IndexOf('\n');
+								if (lineBreak == -1)
 								{
-									string[] lines = sectionData.Split('\n');
-									string filename = Path.Combine(path, lines[0]);
+									lineBreak = data.Length;
+								}
+								fileVersion = data.Substring(0, lineBreak);
+								if (data.Length > lineBreak + 1)
+								{
+									data = data.Substring(lineBreak + 1);
+								}
+								else
+								{
+									data = "";
+								}
 
-									if (lines.Length > 9)
+								if (fileVersion == "8")
+								{
+									// Format 1.4.x
+									directFile = true;
+									if (debugOutput)
+										Console.Error.WriteLine("SVN 1.4 client format, directly reading the files.");
+								}
+								else if (fileVersion == "9")
+								{
+									// Format 1.5.x
+									directFile = true;
+									if (debugOutput)
+										Console.Error.WriteLine("SVN 1.5 client format, directly reading the files.");
+								}
+								else if (fileVersion == "10")
+								{
+									// Format 1.6.x
+									directFile = true;
+									if (debugOutput)
+										Console.Error.WriteLine("SVN 1.6 client format, directly reading the files.");
+								}
+								else if (fileVersion == "12")
+								{
+									// Format 1.7.x
+									if (debugOutput)
+										Console.Error.WriteLine("SVN 1.7 client format, using installed SVN command-line client.");
+								}
+								else
+								{
+									Console.Error.WriteLine("Warning: Unrecognised SVN version in " + Path.Combine(path, Path.Combine(".svn", "entries")) + ": " + fileVersion);
+								}
+
+								if (directFile)
+								{
+									// Source: http://gerardlee.wordpress.com/2009/11/10/python-script-use-to-change-svn-working-copy-format/
+									//  0 name
+									//  1 kind
+									//  2 revision
+									//  3 url
+									//  4 repos
+									//  5 schedule
+									//  6 text-time
+									//  7 checksum
+									//  8 committed-date
+									//  9 committed-rev
+									// 10 last-author
+									// 11 has-props
+									// 12 has-prop-mods
+									// 13 cachable-props
+									// 14 present-props
+									// 15 conflict-old
+									// 16 conflict-new
+									// 17 conflict-wrk
+									// 18 prop-reject-file
+									// 19 copied
+									// 20 copyfrom-url
+									// 21 copyfrom-rev
+									// 22 deleted
+									// 23 absent
+									// 24 incomplete
+									// 25 uuid
+									// 26 lock-token
+									// 27 lock-owner
+									// 28 lock-comment
+									// 29 lock-creation-date
+									// 30 changelist (since 1.5)
+									// 31 keep-local (since 1.5)
+									// 32 working-size
+									// 33 depth (since 1.5)
+									// 34 tree-conflicts (since 1.6)
+									// 35 file-external (since 1.6)
+
+									string[] sections = data.Split(new string[] { "\f\n" }, StringSplitOptions.None);
+
+									foreach (string sectionData in sections)
 									{
-										// Some sections are shorter and contain no revision data, skip them
-										string revLine = lines[9].Trim();
-										if (revLine.Length > 0)
+										string[] lines = sectionData.Split('\n');
+										string filename = Path.Combine(path, lines[0]);
+
+										if (lines.Length > 9)
 										{
-											int entryRevision = int.Parse(revLine);
-											if (!mixedRevisions && revision != 0 && entryRevision != revision)
+											// Some sections are shorter and contain no revision data, skip them
+											string revLine = lines[9].Trim();
+											if (revLine.Length > 0)
 											{
-												mixedRevisions = true;
-												if (debugOutput)
-													Console.Error.WriteLine("Found mixed revision numbers (" + entryRevision + " for " + filename + " instead of " + revision + ") - no more notifications");
-											}
-											if (entryRevision > revision)
-											{
-												revision = entryRevision;
-												if (debugOutput)
-													Console.Error.WriteLine("Found newer revision number " + entryRevision + " for " + filename);
-											}
-										}
-									}
-
-									if (lines.Length > 3)
-									{
-										if (repositoryUrl == null && lines[3].Trim().Length > 0)
-											repositoryUrl = lines[3].Trim();
-									}
-
-									if (lines.Length > 5)
-									{
-										if (lines[5].Trim() == "add")
-										{
-											isModified = true;
-											if (debugOutput)
-												Console.Error.WriteLine("Uncommitted added file: " + filename);
-										}
-										if (lines[5].Trim() == "delete")
-										{
-											isModified = true;
-											if (debugOutput)
-												Console.Error.WriteLine("Uncommitted deleted file: " + filename);
-										}
-									}
-
-									if (lines.Length > 7)
-									{
-										// Compare file time
-										DateTime svnFileTime;
-										if (!isModified && DateTime.TryParse(lines[6], out svnFileTime))
-										{
-											FileInfo fi = new FileInfo(filename);
-											if (fi.LastWriteTime.ToString("s") != svnFileTime.ToString("s"))
-											{
-												if (debugOutput)
-													Console.Error.WriteLine("File is newer than SVN base: " + filename);
-
-												// Compare checksum
-												string svnChecksum = lines[7];
-												FileStream fs = File.Open(filename, FileMode.Open, FileAccess.Read);
-												byte[] fileChecksumBytes = System.Security.Cryptography.MD5.Create().ComputeHash(fs);
-												fs.Close();
-												string fileChecksum = "";
-												foreach (byte b in fileChecksumBytes)
+												int entryRevision = int.Parse(revLine);
+												if (!mixedRevisions && revision != 0 && entryRevision != revision)
 												{
-													fileChecksum += b.ToString("x2");
-												}
-												if (fileChecksum != svnChecksum)
-												{
-													isModified = true;
-
+													mixedRevisions = true;
 													if (debugOutput)
-														Console.Error.WriteLine("File is modified from SVN base: " + filename);
+														Console.Error.WriteLine("Found mixed revision numbers (" + entryRevision + " for " + filename + " instead of " + revision + ") - no more notifications");
+												}
+												if (entryRevision > revision)
+												{
+													revision = entryRevision;
+													if (debugOutput)
+														Console.Error.WriteLine("Found newer revision number " + entryRevision + " for " + filename);
+												}
+											}
+										}
+
+										if (lines.Length > 3)
+										{
+											if (repositoryUrl == null && lines[3].Trim().Length > 0)
+												repositoryUrl = lines[3].Trim();
+										}
+
+										if (lines.Length > 5)
+										{
+											if (lines[5].Trim() == "add")
+											{
+												isModified = true;
+												if (debugOutput)
+													Console.Error.WriteLine("Uncommitted added file: " + filename);
+											}
+											if (lines[5].Trim() == "delete")
+											{
+												isModified = true;
+												if (debugOutput)
+													Console.Error.WriteLine("Uncommitted deleted file: " + filename);
+											}
+										}
+
+										if (lines.Length > 7)
+										{
+											// Compare file time
+											DateTime svnFileTime;
+											if (!isModified && DateTime.TryParse(lines[6], out svnFileTime))
+											{
+												FileInfo fi = new FileInfo(filename);
+												if (fi.LastWriteTime.ToString("s") != svnFileTime.ToString("s"))
+												{
+													if (debugOutput)
+														Console.Error.WriteLine("File is newer than SVN base: " + filename);
+
+													// Compare checksum
+													string svnChecksum = lines[7];
+													FileStream fs = File.Open(filename, FileMode.Open, FileAccess.Read);
+													byte[] fileChecksumBytes = System.Security.Cryptography.MD5.Create().ComputeHash(fs);
+													fs.Close();
+													string fileChecksum = "";
+													foreach (byte b in fileChecksumBytes)
+													{
+														fileChecksum += b.ToString("x2");
+													}
+													if (fileChecksum != svnChecksum)
+													{
+														isModified = true;
+
+														if (debugOutput)
+															Console.Error.WriteLine("File is modified from SVN base: " + filename);
+													}
 												}
 											}
 										}
@@ -876,23 +883,28 @@ namespace SvnRevisionTool
 							}
 						}
 					}
-				}
-				catch (IOException ex)
-				{
-					Console.Error.WriteLine("Warning: Cannot read file " + Path.Combine(path, ".svn\\entries") + ". " +
-						ex.GetType().Name + ": " + ex.Message);
-				}
-				catch (FormatException)
-				{
-					Console.Error.WriteLine("Warning: File format error in " + Path.Combine(path, ".svn\\entries") + ".");
-				}
-
-				if (directFile)
-				{
-					foreach (string subdir in Directory.GetDirectories(path))
+					catch (IOException ex)
 					{
-						ProcessDirectory(subdir, silent, false);
+						Console.Error.WriteLine("Warning: Cannot read file " + Path.Combine(path, Path.Combine(".svn", "entries")) + ". " +
+							ex.GetType().Name + ": " + ex.Message);
 					}
+					catch (FormatException)
+					{
+						Console.Error.WriteLine("Warning: File format error in " + Path.Combine(path, Path.Combine(".svn", "entries")) + ".");
+					}
+
+					if (directFile)
+					{
+						foreach (string subdir in Directory.GetDirectories(path))
+						{
+							ProcessDirectory(subdir, silent, false);
+						}
+					}
+				}
+				else
+				{
+				    // check for Subversion >= 1.7
+					fileVersion = "12";
 				}
 			}
 			else
@@ -916,10 +928,10 @@ namespace SvnRevisionTool
 						return;
 					}
 
-					string svnVersionExec = Regex.Replace(svnExec, @"\\svn.exe$", @"\svnversion.exe");
+					string svnVersionExec = Path.Combine(Path.GetDirectoryName(svnExec), svnversionExeName);
 					if (!File.Exists(svnVersionExec))
 					{
-						Console.Error.WriteLine("Error: svnversion.exe not found.");
+						Console.Error.WriteLine("Error: svnversion binary not found.");
 						return;
 					}
 
@@ -936,7 +948,12 @@ namespace SvnRevisionTool
 					while (!p.StandardOutput.EndOfStream)
 					{
 						line = p.StandardOutput.ReadLine();
-						Match m = Regex.Match(line, @"^([0-9]+)");
+						// Possible output:
+						// 1234          Revision 1234
+						// 1100:1234     Mixed revisions 1100 to 1234
+						// 1234M         Revision 1234, modified
+						// 1100:1234MP   Mixed revisions 1100 to 1234, modified and partial
+						Match m = Regex.Match(line, @"^(?:[0-9]+:)?([0-9]+)");
 						if (m.Success)
 						{
 							revision = int.Parse(m.Groups[1].Value);
@@ -981,15 +998,30 @@ namespace SvnRevisionTool
 			string svn = null;
 			RegistryKey key;
 
-			// If TortoiseSVN has been installed with command-line binaries
-			key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\TortoiseSVN");
-			if (key != null)
+			// Try the PATH environment variable
+			if (svn == null)
 			{
-				object loc = key.GetValue("Directory");
-				if (loc is string)
+				string pathEnv = Environment.GetEnvironmentVariable("PATH");
+				foreach (string dir in pathEnv.Split(Path.PathSeparator))
 				{
-					svn = Path.Combine((string) loc, @"bin\svn.exe");
-					if (!File.Exists(svn)) svn = null;
+					svn = Path.Combine(dir, svnExeName);
+					if (File.Exists(svn)) break;
+				}
+				if (!File.Exists(svn)) svn = null;
+			}
+
+			// If TortoiseSVN has been installed with command-line binaries
+			if (svn == null)
+			{
+				key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\TortoiseSVN");
+				if (key != null)
+				{
+					object loc = key.GetValue("Directory");
+					if (loc is string)
+					{
+						svn = Path.Combine((string) loc, Path.Combine(@"bin", svnExeName));
+						if (!File.Exists(svn)) svn = null;
+					}
 				}
 			}
 
@@ -1002,7 +1034,7 @@ namespace SvnRevisionTool
 					object loc = key.GetValue("UninstallString");
 					if (loc is string)
 					{
-						svn = Path.Combine(Path.GetDirectoryName((string) loc), @"svn.exe");
+						svn = Path.Combine(Path.GetDirectoryName((string) loc), svnExeName);
 						if (!File.Exists(svn)) svn = null;
 					}
 				}
@@ -1015,13 +1047,13 @@ namespace SvnRevisionTool
 					object loc = key.GetValue("InstallLocation");
 					if (loc is string)
 					{
-						svn = Path.Combine((string) loc, @"svn.exe");
+						svn = Path.Combine((string) loc, svnExeName);
 						if (!File.Exists(svn)) svn = null;
 					}
 				}
 			}
 
-			// Try 64-bit registry key
+			// Try 64-bit registry keys
 			if (svn == null && Is64Bit)
 			{
 				key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\CollabNet Subversion Client");
@@ -1030,7 +1062,7 @@ namespace SvnRevisionTool
 					object loc = key.GetValue("UninstallString");
 					if (loc is string)
 					{
-						svn = Path.Combine(Path.GetDirectoryName((string) loc), @"svn.exe");
+						svn = Path.Combine(Path.GetDirectoryName((string) loc), svnExeName);
 						if (!File.Exists(svn)) svn = null;
 					}
 				}
@@ -1043,7 +1075,7 @@ namespace SvnRevisionTool
 					object loc = key.GetValue("InstallLocation");
 					if (loc is string)
 					{
-						svn = Path.Combine((string) loc, @"svn.exe");
+						svn = Path.Combine((string) loc, svnExeName);
 						if (!File.Exists(svn)) svn = null;
 					}
 				}
@@ -1054,7 +1086,7 @@ namespace SvnRevisionTool
 			{
 				foreach (string dir in Directory.GetDirectories(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "*subversion*"))
 				{
-					svn = Path.Combine(dir, @"svn.exe");
+					svn = Path.Combine(dir, svnExeName);
 					if (!File.Exists(svn)) svn = null;
 				}
 			}
@@ -1064,7 +1096,7 @@ namespace SvnRevisionTool
 			{
 				foreach (string dir in Directory.GetDirectories(ProgramFilesX86(), "*subversion*"))
 				{
-					svn = Path.Combine(dir, @"svn.exe");
+					svn = Path.Combine(dir, svnExeName);
 					if (!File.Exists(svn)) svn = null;
 				}
 			}
