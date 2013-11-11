@@ -957,8 +957,6 @@ namespace SvnRevisionTool
 						if (m.Success)
 						{
 							revision = int.Parse(m.Groups[1].Value);
-							// TODO: revTime = DateTimeOffset.Parse(m.Groups[2].Value);
-							revTime = DateTimeOffset.MinValue;
 							p.StandardOutput.ReadToEnd();   // Kindly eat up the remaining output
 							break;
 						}
@@ -989,6 +987,35 @@ namespace SvnRevisionTool
 						p.Kill();
 					}
 					isModified = !string.IsNullOrEmpty(line);
+
+					psi = new ProcessStartInfo(svnExec, "log --limit 1");
+					psi.WorkingDirectory = path;
+					psi.RedirectStandardOutput = true;
+					if (silent)
+					{
+						psi.RedirectStandardError = true;
+					}
+					psi.UseShellExecute = false;
+					p = Process.Start(psi);
+					line = null;
+					while (!p.StandardOutput.EndOfStream)
+					{
+						line = p.StandardOutput.ReadLine();
+						// Possible output:
+						// r1234 | username | 2013-12-31 12:00:00 +0100 (Di, 31 Dez 2013) | 1 line
+						Match m = Regex.Match(line, @"([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} [+-][0-9]{4})");
+						if (m.Success)
+						{
+							revTime = DateTimeOffset.Parse(m.Groups[1].Value);
+							p.StandardOutput.ReadToEnd();   // Kindly eat up the remaining output
+							break;
+						}
+					}
+					p.StandardOutput.ReadToEnd();   // Kindly eat up the remaining output
+					if (!p.WaitForExit(1000))
+					{
+						p.Kill();
+					}
 				}
 			}
 		}

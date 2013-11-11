@@ -41,6 +41,7 @@ using System.Runtime.InteropServices;
 // * Updated help message
 // * Added support for Linux system environments
 // * Also searching SVN executable in the PATH environment variable
+// * Added missing output of commit date and time
 //
 // 1.5.1 (2013-06-20)
 // * Fixed version 12 (SVN 1.7) detection with no line break
