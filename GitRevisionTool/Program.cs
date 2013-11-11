@@ -12,8 +12,8 @@ namespace GitRevisionTool
 {
 	class Program
 	{
+		static string gitExeName = Environment.OSVersion.Platform == PlatformID.Unix ? "git" : "git.exe";
 		static bool multiProjectMode;
-		static bool onlyInformationalVersion;
 		static string revision;
 		static bool debugOutput;
 		static bool isModified;
@@ -241,10 +241,10 @@ namespace GitRevisionTool
 
 		static bool PatchAssemblyInfoFile(string path)
 		{
-			string aiFilename = Path.Combine(path, "Properties\\AssemblyInfo.cs");
+			string aiFilename = Path.Combine(path, Path.Combine("Properties", "AssemblyInfo.cs"));
 			if (!File.Exists(aiFilename))
 			{
-				aiFilename = Path.Combine(path, "My Project\\AssemblyInfo.vb");
+				aiFilename = Path.Combine(path, Path.Combine("My Project", "AssemblyInfo.vb"));
 			}
 			if (!File.Exists(aiFilename))
 			{
@@ -324,10 +324,10 @@ namespace GitRevisionTool
 
 		static bool RestoreAssemblyInfoFile(string path)
 		{
-			string aiFilename = Path.Combine(path, "Properties\\AssemblyInfo.cs");
+			string aiFilename = Path.Combine(path, Path.Combine("Properties", "AssemblyInfo.cs"));
 			if (!File.Exists(aiFilename))
 			{
-				aiFilename = Path.Combine(path, "My Project\\AssemblyInfo.vb");
+				aiFilename = Path.Combine(path, Path.Combine("My Project", "AssemblyInfo.vb"));
 			}
 			if (!File.Exists(aiFilename))
 			{
@@ -591,7 +591,7 @@ namespace GitRevisionTool
 				Console.WriteLine("                     Prints 10-minutes since year <year>, length <length>");
 				Console.WriteLine("                     in base36 format");
 				Console.WriteLine();
-				Console.WriteLine("The following placeholders variants are available:");
+				Console.WriteLine("The following placeholder variants are available:");
 				Console.WriteLine("  {utdate} and {uttime} print commit date/time in UTC.");
 				Console.WriteLine("  {utbuilddate} and {utbuildtime} print build date/time in UTC.");
 				Console.WriteLine("  {Xmin} and {Bmin} use uppercase letters.");
@@ -607,7 +607,8 @@ namespace GitRevisionTool
 				Console.WriteLine("  SET revid=45d4e32f");
 				Console.WriteLine("(Write to a file outside the Git working directory to avoid false modify.)");
 				Console.WriteLine();
-				Console.WriteLine("Git (msysGit) must be installed in one of %ProgramFiles*%\\Git*.");
+				Console.WriteLine("Git (msysGit) must be installed in one of %ProgramFiles*%\\Git* or in the PATH");   // 78c
+				Console.WriteLine("environment variable.");
 				Console.WriteLine();
 				Console.WriteLine("ATTENTION: Be sure not to have the AssemblyInfo file opened in the IDE while");
 				Console.WriteLine("           building the project, or the version modifications will be ignored");
@@ -726,16 +727,32 @@ namespace GitRevisionTool
 		private static string FindGitBinary()
 		{
 			string git = null;
-			
-			// Read registry uninstaller key
-			RegistryKey key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Git_is1");
-			if (key != null)
+			RegistryKey key;
+
+			// Try the PATH environment variable
+			if (git == null)
 			{
-				object loc = key.GetValue("InstallLocation");
-				if (loc is string)
+				string pathEnv = Environment.GetEnvironmentVariable("PATH");
+				foreach (string dir in pathEnv.Split(Path.PathSeparator))
 				{
-					git = Path.Combine((string) loc, @"bin\git.exe");
-					if (!File.Exists(git)) git = null;
+					git = Path.Combine(dir, gitExeName);
+					if (File.Exists(git)) break;
+				}
+				if (!File.Exists(git)) git = null;
+			}
+
+			// Read registry uninstaller key
+			if (git == null)
+			{
+				key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Git_is1");
+				if (key != null)
+				{
+					object loc = key.GetValue("InstallLocation");
+					if (loc is string)
+					{
+						git = Path.Combine((string) loc, Path.Combine("bin", gitExeName));
+						if (!File.Exists(git)) git = null;
+					}
 				}
 			}
 
@@ -748,7 +765,7 @@ namespace GitRevisionTool
 					object loc = key.GetValue("InstallLocation");
 					if (loc is string)
 					{
-						git = Path.Combine((string) loc, @"bin\git.exe");
+						git = Path.Combine((string) loc, Path.Combine("bin", gitExeName));
 						if (!File.Exists(git)) git = null;
 					}
 				}
@@ -759,7 +776,7 @@ namespace GitRevisionTool
 			{
 				foreach (string dir in Directory.GetDirectories(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "git*"))
 				{
-					git = Path.Combine(dir, @"bin\git.exe");
+					git = Path.Combine(dir, Path.Combine("bin", gitExeName));
 					if (!File.Exists(git)) git = null;
 				}
 			}
@@ -769,7 +786,7 @@ namespace GitRevisionTool
 			{
 				foreach (string dir in Directory.GetDirectories(ProgramFilesX86(), "git*"))
 				{
-					git = Path.Combine(dir, @"bin\git.exe");
+					git = Path.Combine(dir, Path.Combine("bin", gitExeName));
 					if (!File.Exists(git)) git = null;
 				}
 			}

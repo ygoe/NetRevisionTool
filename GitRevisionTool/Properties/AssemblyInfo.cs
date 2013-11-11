@@ -32,10 +32,15 @@ using System.Runtime.InteropServices;
 // Sie können alle Werte angeben oder die standardmäßigen Build- und Revisionsnummern 
 // übernehmen, indem Sie "*" eingeben:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.5")]
-[assembly: AssemblyFileVersion("1.5")]
+[assembly: AssemblyVersion("1.6")]
+[assembly: AssemblyFileVersion("1.6")]
 
 // Version history:
+//
+// 1.6 (...)
+// * Updated help message
+// * Added support for Linux system environments
+// * Also searching Git executable in the PATH environment variable
 //
 // 1.5 (2013-05-23)
 // * Added multi-project mode (ported from SvnRevisionTool 1.5)

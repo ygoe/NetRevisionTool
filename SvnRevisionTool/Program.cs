@@ -12,8 +12,8 @@ namespace SvnRevisionTool
 {
 	class Program
 	{
-		static string svnExeName = Environment.OSVersion.Platform == PlatformID.Unix ? @"svn" : @"svn.exe";
-		static string svnversionExeName = Environment.OSVersion.Platform == PlatformID.Unix ? @"svnversion" : @"svnversion.exe";
+		static string svnExeName = Environment.OSVersion.Platform == PlatformID.Unix ? "svn" : "svn.exe";
+		static string svnversionExeName = Environment.OSVersion.Platform == PlatformID.Unix ? "svnversion" : "svnversion.exe";
 		static bool multiProjectMode;
 		static bool onlyInformationalVersion;
 		static string repositoryUrl;
