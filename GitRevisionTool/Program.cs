@@ -353,8 +353,7 @@ namespace GitRevisionTool
 			else
 			{
 				if (debugOutput)
-					Console.Error.WriteLine(Path.GetFileName(aiBackup) + " does not exist");
-				return false;
+					Console.Error.WriteLine("Backup file " + Path.GetFileName(aiBackup) + " does not exist, skipping");
 			}
 			return true;
 		}
