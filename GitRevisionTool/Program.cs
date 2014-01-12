@@ -13,7 +13,6 @@ namespace GitRevisionTool
 	class Program
 	{
 		static bool multiProjectMode;
-		static bool onlyInformationalVersion;
 		static string revision;
 		static bool debugOutput;
 		static bool isModified;
@@ -24,6 +23,7 @@ namespace GitRevisionTool
 		{
 			CommandLineParser clp = new CommandLineParser();
 			clp.AddKnownOption("a", "assembly-info");
+			clp.AddKnownOption("", "test-b36min");
 			clp.AddKnownOption("b", "test-bmin");
 			clp.AddKnownOption("f", "format", true);
 			clp.AddKnownOption("h", "help");
@@ -32,7 +32,9 @@ namespace GitRevisionTool
 			clp.AddKnownOption("r", "revision");
 			clp.AddKnownOption("s", "restore");
 			clp.AddKnownOption("v", "version");
+			clp.AddKnownOption("x", "test-xmin");
 			clp.AddKnownOption("B", "de-bmin");
+			clp.AddKnownOption("", "de-b36min");
 			clp.AddKnownOption("D", "debug");
 			clp.AddKnownOption("M", "stop-if-modified");
 			clp.AddKnownOption("X", "de-xmin");
@@ -46,25 +48,105 @@ namespace GitRevisionTool
 			}
 			if (clp.IsOptionSet("X"))
 			{
-				int baseYear = int.Parse(clp.GetArgument(0));
+				int baseYear;
+				if (!int.TryParse(clp.GetArgument(0), out baseYear))
+				{
+					Console.Error.WriteLine("Invalid argument: Base year expected");
+					return 1;
+				}
 				string xmin = clp.GetArgument(1).Trim().ToLowerInvariant();
 				DateTime time = DehexMinutes(baseYear, xmin);
+				if (time == DateTime.MinValue)
+				{
+					Console.Error.WriteLine("Invalid xmin value.");
+					return 0;
+				}
 				Console.WriteLine(time.ToString("yyyy-MM-dd HH:mm") + " UTC");
 				Console.WriteLine(time.ToLocalTime().ToString("yyyy-MM-dd HH:mm K"));
 				return 0;
 			}
 			if (clp.IsOptionSet("B"))
 			{
-				int baseYear = int.Parse(clp.GetArgument(0));
+				int baseYear;
+				if (!int.TryParse(clp.GetArgument(0), out baseYear))
+				{
+					Console.Error.WriteLine("Invalid argument: Base year expected");
+					return 1;
+				}
 				string bmin = clp.GetArgument(1).Trim().ToLowerInvariant();
-				DateTime time = Debase36Minutes(baseYear, bmin);
+				DateTime time = Debase28Minutes(baseYear, bmin);
+				if (time == DateTime.MinValue)
+				{
+					Console.Error.WriteLine("Invalid bmin value.");
+					return 0;
+				}
 				Console.WriteLine(time.ToString("yyyy-MM-dd HH:mm") + " UTC");
 				Console.WriteLine(time.ToLocalTime().ToString("yyyy-MM-dd HH:mm K"));
 				return 0;
 			}
+			if (clp.IsOptionSet("de-b36min"))
+			{
+				int baseYear;
+				if (!int.TryParse(clp.GetArgument(0), out baseYear))
+				{
+					Console.Error.WriteLine("Invalid argument: Base year expected");
+					return 1;
+				}
+				string bmin = clp.GetArgument(1).Trim().ToLowerInvariant();
+				DateTime time = Debase36Minutes(baseYear, bmin);
+				if (time == DateTime.MinValue)
+				{
+					Console.Error.WriteLine("Invalid b36min value.");
+					return 0;
+				}
+				Console.WriteLine(time.ToString("yyyy-MM-dd HH:mm") + " UTC");
+				Console.WriteLine(time.ToLocalTime().ToString("yyyy-MM-dd HH:mm K"));
+				return 0;
+			}
+			if (clp.IsOptionSet("x"))
+			{
+				int baseYear;
+				if (!int.TryParse(clp.GetArgument(0), out baseYear))
+				{
+					Console.Error.WriteLine("Invalid argument: Base year expected");
+					return 1;
+				}
+				revTime = DateTime.UtcNow;
+				long ticks1min = TimeSpan.FromMinutes(1).Ticks;
+				revTime = new DateTime(revTime.Ticks / ticks1min * ticks1min, DateTimeKind.Utc);
+				for (int i = 0; i < 10; i++)
+				{
+					Console.WriteLine(revTime.ToLocalTime().ToString("yyyy-MM-dd HH:mm K") + " = " + HexMinutes(baseYear, 1));
+					revTime = revTime.AddMinutes(1);
+				}
+				return 0;
+			}
 			if (clp.IsOptionSet("b"))
 			{
-				int baseYear = int.Parse(clp.GetArgument(0));
+				int baseYear;
+				if (!int.TryParse(clp.GetArgument(0), out baseYear))
+				{
+					Console.Error.WriteLine("Invalid argument: Base year expected");
+					return 1;
+				}
+				revTime = DateTime.UtcNow;
+				long ticks20min = TimeSpan.FromMinutes(20).Ticks;
+				revTime = new DateTime(revTime.Ticks / ticks20min * ticks20min, DateTimeKind.Utc);
+				for (int i = 0; i < 10; i++)
+				{
+					Console.WriteLine(revTime.ToLocalTime().ToString("yyyy-MM-dd HH:mm K") + " = " + Base28Minutes(baseYear, 1));
+					revTime = revTime.AddMinutes(20);
+				}
+				return 0;
+			}
+			if (clp.IsOptionSet("test-b36min"))
+			{
+				int baseYear;
+				if (!int.TryParse(clp.GetArgument(0), out baseYear))
+				{
+					Console.Error.WriteLine("Invalid argument: Base year expected");
+					return 1;
+				}
 				revTime = DateTime.UtcNow;
 				long ticks10min = TimeSpan.FromMinutes(10).Ticks;
 				revTime = new DateTime(revTime.Ticks / ticks10min * ticks10min, DateTimeKind.Utc);
@@ -73,7 +155,6 @@ namespace GitRevisionTool
 					Console.WriteLine(revTime.ToLocalTime().ToString("yyyy-MM-dd HH:mm K") + " = " + Base36Minutes(baseYear, 1));
 					revTime = revTime.AddMinutes(10);
 				}
-				
 				return 0;
 			}
 
@@ -408,13 +489,17 @@ namespace GitRevisionTool
 			
 			value = Regex.Replace(value, @"\{xmin:([0-9]{4})\}", delegate(Match m) { return HexMinutes(int.Parse(m.Groups[1].Value), 1); });
 			value = Regex.Replace(value, @"\{xmin:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return HexMinutes(int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)); });
-			value = Regex.Replace(value, @"\{bmin:([0-9]{4})\}", delegate(Match m) { return Base36Minutes(int.Parse(m.Groups[1].Value), 1); });
-			value = Regex.Replace(value, @"\{bmin:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return Base36Minutes(int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)); });
+			value = Regex.Replace(value, @"\{b36min:([0-9]{4})\}", delegate(Match m) { return Base36Minutes(int.Parse(m.Groups[1].Value), 1); });
+			value = Regex.Replace(value, @"\{b36min:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return Base36Minutes(int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)); });
+			value = Regex.Replace(value, @"\{bmin:([0-9]{4})\}", delegate(Match m) { return Base28Minutes(int.Parse(m.Groups[1].Value), 1); });
+			value = Regex.Replace(value, @"\{bmin:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return Base28Minutes(int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)); });
 			
 			value = Regex.Replace(value, @"\{Xmin:([0-9]{4})\}", delegate(Match m) { return HexMinutes(int.Parse(m.Groups[1].Value), 1).ToUpperInvariant(); });
 			value = Regex.Replace(value, @"\{Xmin:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return HexMinutes(int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)).ToUpperInvariant(); });
-			value = Regex.Replace(value, @"\{Bmin:([0-9]{4})\}", delegate(Match m) { return Base36Minutes(int.Parse(m.Groups[1].Value), 1).ToUpperInvariant(); });
-			value = Regex.Replace(value, @"\{Bmin:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return Base36Minutes(int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)).ToUpperInvariant(); });
+			value = Regex.Replace(value, @"\{B36min:([0-9]{4})\}", delegate(Match m) { return Base36Minutes(int.Parse(m.Groups[1].Value), 1).ToUpperInvariant(); });
+			value = Regex.Replace(value, @"\{B36min:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return Base36Minutes(int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)).ToUpperInvariant(); });
+			value = Regex.Replace(value, @"\{Bmin:([0-9]{4})\}", delegate(Match m) { return Base28Minutes(int.Parse(m.Groups[1].Value), 1).ToUpperInvariant(); });
+			value = Regex.Replace(value, @"\{Bmin:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return Base28Minutes(int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)).ToUpperInvariant(); });
 			return value;
 		}
 
@@ -436,7 +521,75 @@ namespace GitRevisionTool
 				xmin = xmin.Substring(1);
 			}
 			int min = int.Parse(xmin, System.Globalization.NumberStyles.AllowHexSpecifier);
-			return new DateTime(baseYear, 1, 1).AddMinutes(negative ? -min : min);
+			try
+			{
+				return new DateTime(baseYear, 1, 1).AddMinutes(negative ? -min : min);
+			}
+			catch
+			{
+				return DateTime.MinValue;
+			}
+		}
+
+		/// <summary>
+		/// List of digits for the base28 representation. This uses the digits 0 through 9, and
+		/// all characters from a-z that are no vowels and have a low chance of being confused
+		/// with digits or each other when hand-written. Omitting vowels prevents generating
+		/// profane words.
+		/// </summary>
+		static private char[] base28Chars = new char[]
+		{
+			'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'b', 'c', 'd', 'f', 'g', 'h', 'j',
+			'k', 'm', 'n', 'p', 'q', 'r', 't', 'v', 'w', 'x', 'y'
+		};
+
+		static string Base28Minutes(int baseYear, int length)
+		{
+			int min = (int) ((revTime.UtcDateTime - new DateTime(baseYear, 1, 1)).TotalMinutes / 20);
+			bool negative = false;
+			if (min < 0)
+			{
+				negative = true;
+				min = -min;
+			}
+			string s = "";
+			while (min > 0)
+			{
+				int digit = min % 28;
+				min = min / 28;
+				s = base28Chars[digit] + s;
+			}
+			return (negative ? "-" : "") + s.PadLeft(length, '0');
+		}
+
+		static DateTime Debase28Minutes(int baseYear, string bmin)
+		{
+			bool negative = false;
+			if (bmin.StartsWith("-"))
+			{
+				negative = true;
+				bmin = bmin.Substring(1);
+			}
+			int min = 0;
+			while (bmin.Length > 0)
+			{
+				int digit = Array.IndexOf(base28Chars, bmin[0]);
+				if (digit == -1)
+				{
+					return DateTime.MinValue;
+				}
+				min = min * 28 + digit;
+				bmin = bmin.Substring(1);
+			}
+			min *= 20;
+			try
+			{
+				return new DateTime(baseYear, 1, 1).AddMinutes(negative ? -min : min);
+			}
+			catch
+			{
+				return DateTime.MinValue;
+			}
 		}
 
 		static string Base36Minutes(int baseYear, int length)
@@ -481,7 +634,14 @@ namespace GitRevisionTool
 				bmin = bmin.Substring(1);
 			}
 			min *= 10;
-			return new DateTime(baseYear, 1, 1).AddMinutes(negative ? -min : min);
+			try
+			{
+				return new DateTime(baseYear, 1, 1).AddMinutes(negative ? -min : min);
+			}
+			catch
+			{
+				return DateTime.MinValue;
+			}
 		}
 
 		static void HandleHelp(bool showHelp)
@@ -529,6 +689,8 @@ namespace GitRevisionTool
 				Console.WriteLine("Options:");
 				Console.WriteLine("  -a, --assembly-info");
 				Console.WriteLine("                  Patches the AssemblyInfo.cs/vb file's version specifications");   // 78c
+				Console.WriteLine("  --test-b36min <year>");
+				Console.WriteLine("                  Prints the current and next few b36min values");
 				Console.WriteLine("  -b, --test-bmin <year>");
 				Console.WriteLine("                  Prints the current and next few bmin values");
 				Console.WriteLine("  -f, --format    Prints the revision string with the specified format");
@@ -540,6 +702,10 @@ namespace GitRevisionTool
 				Console.WriteLine("  -r, --revision  Shows the working copy revision");
 				Console.WriteLine("  -s, --restore   Restores AssemblyInfo.cs/vb file from backup");
 				Console.WriteLine("  -v, --version   Shows product version");
+				Console.WriteLine("  -x, --test-xmin <year>");
+				Console.WriteLine("                  Prints the current and next few xmin values");
+				Console.WriteLine("  --de-b36min <year> <bmin>");
+				Console.WriteLine("                  Decodes a b36min value to UTC and local time");
 				Console.WriteLine("  -B, --de-bmin <year> <bmin>");
 				Console.WriteLine("                  Decodes a bmin value to UTC and local time");
 				Console.WriteLine("  -D, --debug     Shows debug information");
@@ -587,13 +753,16 @@ namespace GitRevisionTool
 				Console.WriteLine("                     in hexadecimal format");
 				Console.WriteLine("  {bmin:<year>}");
 				Console.WriteLine("  {bmin:<year>:<length>}");
-				Console.WriteLine("                     Prints 10-minutes since year <year>, length <length>");
-				Console.WriteLine("                     in base36 format");
+				Console.WriteLine("                     Prints 20-minutes since year <year>, length <length>");
+				Console.WriteLine("                     in custom base28 format");
+				Console.WriteLine("  {b36min:<year>}");
+				Console.WriteLine("  {b36min:<year>:<length>}");
+				Console.WriteLine("                     Like bmin, but with 10 minutes and full base36 format");
 				Console.WriteLine();
 				Console.WriteLine("The following placeholders variants are available:");
 				Console.WriteLine("  {utdate} and {uttime} print commit date/time in UTC.");
 				Console.WriteLine("  {utbuilddate} and {utbuildtime} print build date/time in UTC.");
-				Console.WriteLine("  {Xmin} and {Bmin} use uppercase letters.");
+				Console.WriteLine("  {Xmin}, {Bmin} and {B36min} use uppercase letters.");
 				Console.WriteLine();
 				Console.WriteLine("Example for C#:");
 				Console.WriteLine("  [assembly: AssemblyInformationalVersion(\"MyApp {commit:8}/{date}\")]");
