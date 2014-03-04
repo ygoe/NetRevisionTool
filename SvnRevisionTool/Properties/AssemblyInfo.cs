@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("SvnRevisionTool")]
-[assembly: AssemblyCopyright("© 2011-2013 Yves Goergen")]
+[assembly: AssemblyCopyright("© 2011-2014 Yves Goergen")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -37,7 +37,7 @@ using System.Runtime.InteropServices;
 
 // Version history:
 //
-// 1.7 (...)
+// 1.7 (2014-03-04)
 // * Updated help message
 // * Added support for Linux system environments
 // * Also searching SVN executable in the PATH environment variable

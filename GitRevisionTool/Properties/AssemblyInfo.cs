@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("GitRevisionTool")]
-[assembly: AssemblyCopyright("© 2011-2013 Yves Goergen")]
+[assembly: AssemblyCopyright("© 2011-2014 Yves Goergen")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -32,12 +32,12 @@ using System.Runtime.InteropServices;
 // Sie können alle Werte angeben oder die standardmäßigen Build- und Revisionsnummern 
 // übernehmen, indem Sie "*" eingeben:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.6")]
-[assembly: AssemblyFileVersion("1.6")]
+[assembly: AssemblyVersion("1.7")]
+[assembly: AssemblyFileVersion("1.7")]
 
 // Version history:
 //
-// 1.7 (...)
+// 1.7 (2014-03-04)
 // * Updated help message
 // * Added support for Linux system environments
 // * Also searching Git executable in the PATH environment variable
