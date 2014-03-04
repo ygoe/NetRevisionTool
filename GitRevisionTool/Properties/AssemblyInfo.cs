@@ -37,11 +37,17 @@ using System.Runtime.InteropServices;
 
 // Version history:
 //
+// 1.7 (...)
+// * Updated help message
+// * Added support for Linux system environments
+// * Also searching Git executable in the PATH environment variable
+//
 // 1.6 (2014-01-12)
 // * Added base28 version format as new bmin, renamed base36 format to b36min
 //
 // 1.5.1 (2013-11-28)
 // * Ignoring projects on restore if there is nothing to restore
+//
 //
 // 1.5 (2013-05-23)
 // * Added multi-project mode (ported from SvnRevisionTool 1.5)
