@@ -32,10 +32,13 @@ using System.Runtime.InteropServices;
 // Sie können alle Werte angeben oder die standardmäßigen Build- und Revisionsnummern 
 // übernehmen, indem Sie "*" eingeben:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.7")]
-[assembly: AssemblyFileVersion("1.7")]
+[assembly: AssemblyVersion("1.7.1")]
+[assembly: AssemblyFileVersion("1.7.1")]
 
 // Version history:
+//
+// 1.7.1 (2014-03-08)
+// * Added icon
 //
 // 1.7 (2014-03-04)
 // * Updated help message
