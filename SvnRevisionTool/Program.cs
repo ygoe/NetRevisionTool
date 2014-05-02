@@ -1200,8 +1200,14 @@ namespace SvnRevisionTool
 			if (svn == null)
 			{
 				string pathEnv = Environment.GetEnvironmentVariable("PATH");
-				foreach (string dir in pathEnv.Split(Path.PathSeparator))
+				foreach (string _dir in pathEnv.Split(Path.PathSeparator))
 				{
+					string dir = _dir;
+					if (dir.StartsWith("\"") && dir.EndsWith("\""))
+					{
+						// Strip quotes (no Path.PathSeparator supported in quoted directories though)
+						dir = dir.Substring(1, dir.Length - 2);
+					}
 					svn = Path.Combine(dir, svnExeName);
 					if (File.Exists(svn)) break;
 				}
