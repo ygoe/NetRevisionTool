@@ -1,34 +1,36 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitRevisionTool", "GitRevisionTool\GitRevisionTool.csproj", "{5404050F-7116-4709-8C72-98FF18746588}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitRevisionTool.NET20", "GitRevisionTool\GitRevisionTool.NET20.csproj", "{5404050F-7116-4709-8C72-98FF18746588}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SvnRevisionTool", "SvnRevisionTool\SvnRevisionTool.csproj", "{12E529BA-D353-41D6-8061-B2AA007B5A52}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SvnRevisionTool.NET20", "SvnRevisionTool\SvnRevisionTool.NET20.csproj", "{12E529BA-D353-41D6-8061-B2AA007B5A52}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitRevisionTool.NET40", "GitRevisionTool\GitRevisionTool.NET40.csproj", "{33A5110B-AEAD-46A1-95C4-09050388226F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SvnRevisionTool.NET40", "SvnRevisionTool\SvnRevisionTool.NET40.csproj", "{27471610-51BF-426A-A54A-31095161C925}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
-		Debug|x86 = Debug|x86
 		Release|Any CPU = Release|Any CPU
-		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{5404050F-7116-4709-8C72-98FF18746588}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5404050F-7116-4709-8C72-98FF18746588}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5404050F-7116-4709-8C72-98FF18746588}.Debug|x86.ActiveCfg = Debug|x86
-		{5404050F-7116-4709-8C72-98FF18746588}.Debug|x86.Build.0 = Debug|x86
 		{5404050F-7116-4709-8C72-98FF18746588}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5404050F-7116-4709-8C72-98FF18746588}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5404050F-7116-4709-8C72-98FF18746588}.Release|x86.ActiveCfg = Release|x86
-		{5404050F-7116-4709-8C72-98FF18746588}.Release|x86.Build.0 = Release|x86
 		{12E529BA-D353-41D6-8061-B2AA007B5A52}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{12E529BA-D353-41D6-8061-B2AA007B5A52}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{12E529BA-D353-41D6-8061-B2AA007B5A52}.Debug|x86.ActiveCfg = Debug|x86
-		{12E529BA-D353-41D6-8061-B2AA007B5A52}.Debug|x86.Build.0 = Debug|x86
 		{12E529BA-D353-41D6-8061-B2AA007B5A52}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{12E529BA-D353-41D6-8061-B2AA007B5A52}.Release|Any CPU.Build.0 = Release|Any CPU
-		{12E529BA-D353-41D6-8061-B2AA007B5A52}.Release|x86.ActiveCfg = Release|x86
-		{12E529BA-D353-41D6-8061-B2AA007B5A52}.Release|x86.Build.0 = Release|x86
+		{33A5110B-AEAD-46A1-95C4-09050388226F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{33A5110B-AEAD-46A1-95C4-09050388226F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{33A5110B-AEAD-46A1-95C4-09050388226F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{33A5110B-AEAD-46A1-95C4-09050388226F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{27471610-51BF-426A-A54A-31095161C925}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{27471610-51BF-426A-A54A-31095161C925}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{27471610-51BF-426A-A54A-31095161C925}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{27471610-51BF-426A-A54A-31095161C925}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

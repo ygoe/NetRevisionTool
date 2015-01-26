@@ -1,41 +1,41 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-// Allgemeine Informationen über eine Assembly werden über die folgenden 
-// Attribute gesteuert. Ändern Sie diese Attributwerte, um die Informationen zu ändern,
-// die mit einer Assembly verknüpft sind.
+[assembly: AssemblyProduct("GitRevisionTool")]
 [assembly: AssemblyTitle("GitRevisionTool")]
 [assembly: AssemblyDescription("Prints out the current Git revision info of a working directory.")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("GitRevisionTool")]
-[assembly: AssemblyCopyright("© 2011-2014 Yves Goergen")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
+[assembly: AssemblyCopyright("© 2011-2015 Yves Goergen")]
+[assembly: AssemblyCompany("unclassified software development")]
 
-// Durch Festlegen von ComVisible auf "false" werden die Typen in dieser Assembly unsichtbar 
-// für COM-Komponenten. Wenn Sie auf einen Typ in dieser Assembly von 
-// COM zugreifen müssen, legen Sie das ComVisible-Attribut für diesen Typ auf "true" fest.
+// Assembly version, also used for Win32 file version resource.
+// Must be a plain numeric version definition:
+// 1. Major version number, should be increased with major new versions or rewrites of the application
+// 2. Minor version number, should ne increased with minor feature changes or new features
+// 3. Bugfix number, should be set or increased for bugfix releases of a previous version
+// 4. Unused
+[assembly: AssemblyVersion("1.7.3")]
+
+#if NET20
+#if DEBUG
+[assembly: AssemblyConfiguration("Debug, NET20")]
+#else
+[assembly: AssemblyConfiguration("Release, NET20")]
+#endif
+#else
+#if DEBUG
+[assembly: AssemblyConfiguration("Debug, NET40")]
+#else
+[assembly: AssemblyConfiguration("Release, NET40")]
+#endif
+#endif
+
 [assembly: ComVisible(false)]
 
-// Die folgende GUID bestimmt die ID der Typbibliothek, wenn dieses Projekt für COM verfügbar gemacht wird
-[assembly: Guid("2658290a-df90-4fb1-a37c-7d9cb64dea26")]
-
-// Versionsinformationen für eine Assembly bestehen aus den folgenden vier Werten:
-//
-//      Hauptversion
-//      Nebenversion 
-//      Buildnummer
-//      Revision
-//
-// Sie können alle Werte angeben oder die standardmäßigen Build- und Revisionsnummern 
-// übernehmen, indem Sie "*" eingeben:
-// [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.7.2")]
-[assembly: AssemblyFileVersion("1.7.2")]
-
 // Version history:
+//
+// 1.7.3 (2015-01-26)
+// * Added separate .NET 4.0 build, recommended for Windows 8/10 or all VS 2010+ projects
+// * Reorganised AssemblyInfo.cs
 //
 // 1.7.2 (2014-05-02)
 // * Fixed PATH parsing for quoted entries
