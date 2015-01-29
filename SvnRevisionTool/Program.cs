@@ -1,30 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using Unclassified;
-using System.Diagnostics;
 using Microsoft.Win32;
+using Unclassified;
 
 namespace SvnRevisionTool
 {
-	class Program
+	internal class Program
 	{
-		static string svnExeName = Environment.OSVersion.Platform == PlatformID.Unix ? "svn" : "svn.exe";
-		static string svnversionExeName = Environment.OSVersion.Platform == PlatformID.Unix ? "svnversion" : "svnversion.exe";
-		static bool multiProjectMode;
-		static bool onlyInformationalVersion;
-		static string repositoryUrl;
-		static int revision;
-		static bool mixedRevisions;
-		static bool debugOutput;
-		static bool isModified;
-		static DateTimeOffset revTime;
-		static DateTimeOffset buildTime;
+		private static string svnExeName = Environment.OSVersion.Platform == PlatformID.Unix ? "svn" : "svn.exe";
+		private static string svnversionExeName = Environment.OSVersion.Platform == PlatformID.Unix ? "svnversion" : "svnversion.exe";
+		private static bool multiProjectMode;
+		private static bool onlyInformationalVersion;
+		private static string repositoryUrl;
+		private static int revision;
+		private static bool mixedRevisions;
+		private static bool debugOutput;
+		private static bool isModified;
+		private static DateTimeOffset revTime;
+		private static DateTimeOffset buildTime;
 
-		static int Main(string[] args)
+		private static int Main(string[] args)
 		{
 			CommandLineParser clp = new CommandLineParser();
 			clp.AddKnownOption("a", "assembly-info");
@@ -345,7 +345,7 @@ namespace SvnRevisionTool
 			return 0;
 		}
 
-		static bool PatchAssemblyInfoFile(string path)
+		private static bool PatchAssemblyInfoFile(string path)
 		{
 			string aiFilename = Path.Combine(path, Path.Combine("Properties", "AssemblyInfo.cs"));
 			if (!File.Exists(aiFilename))
@@ -455,7 +455,7 @@ namespace SvnRevisionTool
 			return true;
 		}
 
-		static bool RestoreAssemblyInfoFile(string path)
+		private static bool RestoreAssemblyInfoFile(string path)
 		{
 			string aiFilename = Path.Combine(path, Path.Combine("Properties", "AssemblyInfo.cs"));
 			if (!File.Exists(aiFilename))
@@ -492,12 +492,12 @@ namespace SvnRevisionTool
 			return true;
 		}
 
-		static string ResolveFormat(string value)
+		private static string ResolveFormat(string value)
 		{
 			value = value.Replace("{!}", isModified ? "!" : "");
 			value = value.Replace("{commit}", revision.ToString());
 			value = value.Replace("{url}", repositoryUrl);
-			
+
 			value = value.Replace("{date}", revTime.ToString("yyyyMMdd"));
 			value = value.Replace("{date:ymd-}", revTime.ToString("yyyy-MM-dd"));
 			value = value.Replace("{time}", revTime.ToString("HHmmss"));
@@ -539,7 +539,7 @@ namespace SvnRevisionTool
 			value = value.Replace("{utbuildtime:o}", buildTime.ToUniversalTime().ToString("%K"));
 
 			value = Regex.Replace(value, @"\{!:(.*?)\}", delegate(Match m) { return isModified ? m.Groups[1].Value : ""; });
-			
+
 			value = Regex.Replace(value, @"\{xmin:([0-9]{4})\}", delegate(Match m) { return HexMinutes(int.Parse(m.Groups[1].Value), 1); });
 			value = Regex.Replace(value, @"\{xmin:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return HexMinutes(int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)); });
 			value = Regex.Replace(value, @"\{b36min:([0-9]{4})\}", delegate(Match m) { return Base36Minutes(int.Parse(m.Groups[1].Value), 1); });
@@ -547,7 +547,7 @@ namespace SvnRevisionTool
 			value = Regex.Replace(value, @"\{bmin:([0-9]{4})\}", delegate(Match m) { return Base28Minutes(int.Parse(m.Groups[1].Value), 1); });
 			value = Regex.Replace(value, @"\{bmin:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return Base28Minutes(int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)); });
 			value = Regex.Replace(value, @"\{dmin:([0-9]{4})\}", delegate(Match m) { return DecMinutes(int.Parse(m.Groups[1].Value)); });
-			
+
 			value = Regex.Replace(value, @"\{Xmin:([0-9]{4})\}", delegate(Match m) { return HexMinutes(int.Parse(m.Groups[1].Value), 1).ToUpperInvariant(); });
 			value = Regex.Replace(value, @"\{Xmin:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return HexMinutes(int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)).ToUpperInvariant(); });
 			value = Regex.Replace(value, @"\{B36min:([0-9]{4})\}", delegate(Match m) { return Base36Minutes(int.Parse(m.Groups[1].Value), 1).ToUpperInvariant(); });
@@ -557,7 +557,7 @@ namespace SvnRevisionTool
 			return value;
 		}
 
-		static string HexMinutes(int baseYear, int length)
+		private static string HexMinutes(int baseYear, int length)
 		{
 			int min = (int) (revTime.UtcDateTime - new DateTime(baseYear, 1, 1)).TotalMinutes;
 			if (min < 0)
@@ -566,7 +566,7 @@ namespace SvnRevisionTool
 				return min.ToString("x" + length);
 		}
 
-		static DateTime DehexMinutes(int baseYear, string xmin)
+		private static DateTime DehexMinutes(int baseYear, string xmin)
 		{
 			bool negative = false;
 			if (xmin.StartsWith("-"))
@@ -597,7 +597,7 @@ namespace SvnRevisionTool
 			'k', 'm', 'n', 'p', 'q', 'r', 't', 'v', 'w', 'x', 'y'
 		};
 
-		static string Base28Minutes(int baseYear, int length)
+		private static string Base28Minutes(int baseYear, int length)
 		{
 			int min = (int) ((revTime.UtcDateTime - new DateTime(baseYear, 1, 1)).TotalMinutes / 20);
 			bool negative = false;
@@ -616,7 +616,7 @@ namespace SvnRevisionTool
 			return (negative ? "-" : "") + s.PadLeft(length, '0');
 		}
 
-		static DateTime Debase28Minutes(int baseYear, string bmin)
+		private static DateTime Debase28Minutes(int baseYear, string bmin)
 		{
 			bool negative = false;
 			if (bmin.StartsWith("-"))
@@ -646,7 +646,7 @@ namespace SvnRevisionTool
 			}
 		}
 
-		static string Base36Minutes(int baseYear, int length)
+		private static string Base36Minutes(int baseYear, int length)
 		{
 			int min = (int) ((revTime.UtcDateTime - new DateTime(baseYear, 1, 1)).TotalMinutes / 10);
 			bool negative = false;
@@ -668,7 +668,7 @@ namespace SvnRevisionTool
 			return (negative ? "-" : "") + s.PadLeft(length, '0');
 		}
 
-		static DateTime Debase36Minutes(int baseYear, string bmin)
+		private static DateTime Debase36Minutes(int baseYear, string bmin)
 		{
 			bool negative = false;
 			if (bmin.StartsWith("-"))
@@ -698,7 +698,7 @@ namespace SvnRevisionTool
 			}
 		}
 
-		static string DecMinutes(int baseYear)
+		private static string DecMinutes(int baseYear)
 		{
 			int min = (int) ((revTime.UtcDateTime - new DateTime(baseYear, 1, 1)).TotalMinutes / 15);
 			int minutesPerDay = 24 * 4;
@@ -708,7 +708,7 @@ namespace SvnRevisionTool
 				return (min / minutesPerDay).ToString() + "." + (min % minutesPerDay).ToString();
 		}
 
-		static DateTime DedecMinutes(int baseYear, string dmin)
+		private static DateTime DedecMinutes(int baseYear, string dmin)
 		{
 			string[] parts = dmin.Split('.');
 			if (parts.Length != 2) return DateTime.MinValue;
@@ -727,7 +727,7 @@ namespace SvnRevisionTool
 			}
 		}
 
-		static void HandleHelp(bool showHelp)
+		private static void HandleHelp(bool showHelp)
 		{
 			string productName = "";
 			string productVersion = "";
@@ -882,7 +882,7 @@ namespace SvnRevisionTool
 			}
 		}
 
-		static void ProcessDirectory(string path, bool silent, bool findRoot)
+		private static void ProcessDirectory(string path, bool silent, bool findRoot)
 		{
 			bool directFile = false;
 			string fileVersion = null;
@@ -915,7 +915,7 @@ namespace SvnRevisionTool
 				if (debugOutput)
 					Console.Error.WriteLine("Working copy root directory: " + path);
 			}
-			
+
 			string svnSubdir = Path.Combine(path, ".svn");
 			if (Directory.Exists(svnSubdir))
 			{
@@ -1129,7 +1129,7 @@ namespace SvnRevisionTool
 				}
 				else
 				{
-				    // check for Subversion >= 1.7
+					// check for Subversion >= 1.7
 					fileVersion = "12";
 				}
 			}

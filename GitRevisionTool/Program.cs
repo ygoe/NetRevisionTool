@@ -1,26 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using Unclassified;
-using System.Diagnostics;
 using Microsoft.Win32;
+using Unclassified;
 
 namespace GitRevisionTool
 {
-	class Program
+	internal class Program
 	{
-		static string gitExeName = Environment.OSVersion.Platform == PlatformID.Unix ? "git" : "git.exe";
-		static bool multiProjectMode;
-		static string revision;
-		static bool debugOutput;
-		static bool isModified;
-		static DateTimeOffset revTime;
-		static DateTimeOffset buildTime;
+		private static string gitExeName = Environment.OSVersion.Platform == PlatformID.Unix ? "git" : "git.exe";
+		private static bool multiProjectMode;
+		private static string revision;
+		private static bool debugOutput;
+		private static bool isModified;
+		private static DateTimeOffset revTime;
+		private static DateTimeOffset buildTime;
 
-		static int Main(string[] args)
+		private static int Main(string[] args)
 		{
 			CommandLineParser clp = new CommandLineParser();
 			clp.AddKnownOption("a", "assembly-info");
@@ -341,7 +341,7 @@ namespace GitRevisionTool
 			return 0;
 		}
 
-		static bool PatchAssemblyInfoFile(string path)
+		private static bool PatchAssemblyInfoFile(string path)
 		{
 			string aiFilename = Path.Combine(path, Path.Combine("Properties", "AssemblyInfo.cs"));
 			if (!File.Exists(aiFilename))
@@ -424,7 +424,7 @@ namespace GitRevisionTool
 			return true;
 		}
 
-		static bool RestoreAssemblyInfoFile(string path)
+		private static bool RestoreAssemblyInfoFile(string path)
 		{
 			string aiFilename = Path.Combine(path, Path.Combine("Properties", "AssemblyInfo.cs"));
 			if (!File.Exists(aiFilename))
@@ -460,11 +460,11 @@ namespace GitRevisionTool
 			return true;
 		}
 
-		static string ResolveFormat(string value)
+		private static string ResolveFormat(string value)
 		{
 			value = value.Replace("{!}", isModified ? "!" : "");
 			value = value.Replace("{commit}", revision);
-			
+
 			value = value.Replace("{date}", revTime.ToString("yyyyMMdd"));
 			value = value.Replace("{date:ymd-}", revTime.ToString("yyyy-MM-dd"));
 			value = value.Replace("{time}", revTime.ToString("HHmmss"));
@@ -507,7 +507,7 @@ namespace GitRevisionTool
 
 			value = Regex.Replace(value, @"\{!:(.*?)\}", delegate(Match m) { return isModified ? m.Groups[1].Value : ""; });
 			value = Regex.Replace(value, @"\{commit:([1-3][0-9]?|40?|[5-9])\}", delegate(Match m) { return revision.Substring(0, int.Parse(m.Groups[1].Value)); });
-			
+
 			value = Regex.Replace(value, @"\{xmin:([0-9]{4})\}", delegate(Match m) { return HexMinutes(int.Parse(m.Groups[1].Value), 1); });
 			value = Regex.Replace(value, @"\{xmin:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return HexMinutes(int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)); });
 			value = Regex.Replace(value, @"\{b36min:([0-9]{4})\}", delegate(Match m) { return Base36Minutes(int.Parse(m.Groups[1].Value), 1); });
@@ -515,7 +515,7 @@ namespace GitRevisionTool
 			value = Regex.Replace(value, @"\{bmin:([0-9]{4})\}", delegate(Match m) { return Base28Minutes(int.Parse(m.Groups[1].Value), 1); });
 			value = Regex.Replace(value, @"\{bmin:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return Base28Minutes(int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)); });
 			value = Regex.Replace(value, @"\{dmin:([0-9]{4})\}", delegate(Match m) { return DecMinutes(int.Parse(m.Groups[1].Value)); });
-			
+
 			value = Regex.Replace(value, @"\{Xmin:([0-9]{4})\}", delegate(Match m) { return HexMinutes(int.Parse(m.Groups[1].Value), 1).ToUpperInvariant(); });
 			value = Regex.Replace(value, @"\{Xmin:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return HexMinutes(int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)).ToUpperInvariant(); });
 			value = Regex.Replace(value, @"\{B36min:([0-9]{4})\}", delegate(Match m) { return Base36Minutes(int.Parse(m.Groups[1].Value), 1).ToUpperInvariant(); });
@@ -525,7 +525,7 @@ namespace GitRevisionTool
 			return value;
 		}
 
-		static string HexMinutes(int baseYear, int length)
+		private static string HexMinutes(int baseYear, int length)
 		{
 			int min = (int) (revTime.UtcDateTime - new DateTime(baseYear, 1, 1)).TotalMinutes;
 			if (min < 0)
@@ -534,7 +534,7 @@ namespace GitRevisionTool
 				return min.ToString("x" + length);
 		}
 
-		static DateTime DehexMinutes(int baseYear, string xmin)
+		private static DateTime DehexMinutes(int baseYear, string xmin)
 		{
 			bool negative = false;
 			if (xmin.StartsWith("-"))
@@ -565,7 +565,7 @@ namespace GitRevisionTool
 			'k', 'm', 'n', 'p', 'q', 'r', 't', 'v', 'w', 'x', 'y'
 		};
 
-		static string Base28Minutes(int baseYear, int length)
+		private static string Base28Minutes(int baseYear, int length)
 		{
 			int min = (int) ((revTime.UtcDateTime - new DateTime(baseYear, 1, 1)).TotalMinutes / 20);
 			bool negative = false;
@@ -584,7 +584,7 @@ namespace GitRevisionTool
 			return (negative ? "-" : "") + s.PadLeft(length, '0');
 		}
 
-		static DateTime Debase28Minutes(int baseYear, string bmin)
+		private static DateTime Debase28Minutes(int baseYear, string bmin)
 		{
 			bool negative = false;
 			if (bmin.StartsWith("-"))
@@ -614,7 +614,7 @@ namespace GitRevisionTool
 			}
 		}
 
-		static string Base36Minutes(int baseYear, int length)
+		private static string Base36Minutes(int baseYear, int length)
 		{
 			int min = (int) ((revTime.UtcDateTime - new DateTime(baseYear, 1, 1)).TotalMinutes / 10);
 			bool negative = false;
@@ -636,7 +636,7 @@ namespace GitRevisionTool
 			return (negative ? "-" : "") + s.PadLeft(length, '0');
 		}
 
-		static DateTime Debase36Minutes(int baseYear, string bmin)
+		private static DateTime Debase36Minutes(int baseYear, string bmin)
 		{
 			bool negative = false;
 			if (bmin.StartsWith("-"))
@@ -666,7 +666,7 @@ namespace GitRevisionTool
 			}
 		}
 
-		static string DecMinutes(int baseYear)
+		private static string DecMinutes(int baseYear)
 		{
 			int min = (int) ((revTime.UtcDateTime - new DateTime(baseYear, 1, 1)).TotalMinutes / 15);
 			int minutesPerDay = 24 * 4;
@@ -676,7 +676,7 @@ namespace GitRevisionTool
 				return (min / minutesPerDay).ToString() + "." + (min % minutesPerDay).ToString();
 		}
 
-		static DateTime DedecMinutes(int baseYear, string dmin)
+		private static DateTime DedecMinutes(int baseYear, string dmin)
 		{
 			string[] parts = dmin.Split('.');
 			if (parts.Length != 2) return DateTime.MinValue;
@@ -695,7 +695,7 @@ namespace GitRevisionTool
 			}
 		}
 
-		static void HandleHelp(bool showHelp)
+		private static void HandleHelp(bool showHelp)
 		{
 			string productName = "";
 			string productVersion = "";
@@ -840,7 +840,7 @@ namespace GitRevisionTool
 			}
 		}
 
-		static void ProcessDirectory(string path, bool silent)
+		private static void ProcessDirectory(string path, bool silent)
 		{
 			// First try to use the installed git binary
 			string gitExec = FindGitBinary();
@@ -901,7 +901,7 @@ namespace GitRevisionTool
 				p.Kill();
 			}
 			isModified = !string.IsNullOrEmpty(line);
-				
+
 			return;
 
 			//// Try to read the files myself
@@ -917,10 +917,10 @@ namespace GitRevisionTool
 			//    Console.Error.WriteLine("No Git hidden directory found in " + origPath + " and up.");
 			//    return;
 			//}
-			
+
 			//if (debugOutput)
 			//    Console.Error.WriteLine("Processing Git directory " + path);
-			
+
 			//try
 			//{
 			//    string[] lines = File.ReadAllLines(Path.Combine(path, "HEAD"));
@@ -933,8 +933,6 @@ namespace GitRevisionTool
 			//    {
 			//        return line0;
 			//    }
-
-
 
 			//}
 			//catch (IOException ex)
@@ -1000,7 +998,7 @@ namespace GitRevisionTool
 					}
 				}
 			}
-			
+
 			// Search program files directory
 			if (git == null)
 			{
@@ -1020,7 +1018,7 @@ namespace GitRevisionTool
 					if (!File.Exists(git)) git = null;
 				}
 			}
-			
+
 			return git;
 		}
 
