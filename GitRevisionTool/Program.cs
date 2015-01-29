@@ -36,11 +36,12 @@ namespace GitRevisionTool
 			clp.AddKnownOption("x", "test-xmin");
 			clp.AddKnownOption("B", "de-bmin");
 			clp.AddKnownOption("", "de-b36min");
-			clp.AddKnownOption("D", "debug");
+			clp.AddKnownOption("D", "de-dmin");
 			clp.AddKnownOption("M", "stop-if-modified");
 			clp.AddKnownOption("X", "de-xmin");
+			clp.AddKnownOption("", "debug");
 
-			debugOutput = clp.IsOptionSet("D");
+			debugOutput = clp.IsOptionSet("debug");
 
 			if (clp.IsOptionSet("h") || clp.IsOptionSet("v"))
 			{
@@ -98,6 +99,25 @@ namespace GitRevisionTool
 				if (time == DateTime.MinValue)
 				{
 					Console.Error.WriteLine("Invalid b36min value.");
+					return 0;
+				}
+				Console.WriteLine(time.ToString("yyyy-MM-dd HH:mm") + " UTC");
+				Console.WriteLine(time.ToLocalTime().ToString("yyyy-MM-dd HH:mm K"));
+				return 0;
+			}
+			if (clp.IsOptionSet("D"))
+			{
+				int baseYear;
+				if (!int.TryParse(clp.GetArgument(0), out baseYear))
+				{
+					Console.Error.WriteLine("Invalid argument: Base year expected");
+					return 1;
+				}
+				string dmin = clp.GetArgument(1).Trim();
+				DateTime time = DedecMinutes(baseYear, dmin);
+				if (time == DateTime.MinValue)
+				{
+					Console.Error.WriteLine("Invalid dmin value.");
 					return 0;
 				}
 				Console.WriteLine(time.ToString("yyyy-MM-dd HH:mm") + " UTC");
@@ -494,6 +514,7 @@ namespace GitRevisionTool
 			value = Regex.Replace(value, @"\{b36min:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return Base36Minutes(int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)); });
 			value = Regex.Replace(value, @"\{bmin:([0-9]{4})\}", delegate(Match m) { return Base28Minutes(int.Parse(m.Groups[1].Value), 1); });
 			value = Regex.Replace(value, @"\{bmin:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return Base28Minutes(int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)); });
+			value = Regex.Replace(value, @"\{dmin:([0-9]{4})\}", delegate(Match m) { return DecMinutes(int.Parse(m.Groups[1].Value)); });
 			
 			value = Regex.Replace(value, @"\{Xmin:([0-9]{4})\}", delegate(Match m) { return HexMinutes(int.Parse(m.Groups[1].Value), 1).ToUpperInvariant(); });
 			value = Regex.Replace(value, @"\{Xmin:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return HexMinutes(int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)).ToUpperInvariant(); });
@@ -645,6 +666,35 @@ namespace GitRevisionTool
 			}
 		}
 
+		static string DecMinutes(int baseYear)
+		{
+			int min = (int) ((revTime.UtcDateTime - new DateTime(baseYear, 1, 1)).TotalMinutes / 15);
+			int minutesPerDay = 24 * 4;
+			if (min < 0)
+				return "0.0";
+			else
+				return (min / minutesPerDay).ToString() + "." + (min % minutesPerDay).ToString();
+		}
+
+		static DateTime DedecMinutes(int baseYear, string dmin)
+		{
+			string[] parts = dmin.Split('.');
+			if (parts.Length != 2) return DateTime.MinValue;
+			int days, time;
+			if (!int.TryParse(parts[0], out days)) return DateTime.MinValue;
+			if (!int.TryParse(parts[1], out time)) return DateTime.MinValue;
+			if (days < 0 || days >= UInt16.MaxValue) return DateTime.MinValue;
+			if (time < 0 || time >= 96) return DateTime.MinValue;
+			try
+			{
+				return new DateTime(baseYear, 1, 1).AddDays(days).AddMinutes(time * 15);
+			}
+			catch
+			{
+				return DateTime.MinValue;
+			}
+		}
+
 		static void HandleHelp(bool showHelp)
 		{
 			string productName = "";
@@ -709,11 +759,13 @@ namespace GitRevisionTool
 				Console.WriteLine("                  Decodes a b36min value to UTC and local time");
 				Console.WriteLine("  -B, --de-bmin <year> <bmin>");
 				Console.WriteLine("                  Decodes a bmin value to UTC and local time");
-				Console.WriteLine("  -D, --debug     Shows debug information");
+				Console.WriteLine("  -D, --de-dmin <year> <dmin>");
+				Console.WriteLine("                  Decodes a dmin value to UTC and local time");
 				Console.WriteLine("  -M, --stop-if-modified");
 				Console.WriteLine("                  Stops if the working copy contains uncommited changes");
 				Console.WriteLine("  -X, --de-xmin <year> <xmin>");
 				Console.WriteLine("                  Decodes an xmin value to UTC and local time");
+				Console.WriteLine("  --debug         Shows debug information");
 				Console.WriteLine();
 				Console.WriteLine("The path parameter is used to locate the project's AssemblyInfo files that");
 				Console.WriteLine("shall be updated. Therefore the path parameter must be the project's root");
@@ -759,6 +811,9 @@ namespace GitRevisionTool
 				Console.WriteLine("  {b36min:<year>}");
 				Console.WriteLine("  {b36min:<year>:<length>}");
 				Console.WriteLine("                     Like bmin, but with 10 minutes and full base36 format");
+				Console.WriteLine("  {dmin:<year>}");
+				Console.WriteLine("                     Prints 15-minutes since year <year> in a decimal");
+				Console.WriteLine("                     dot-separated format (days.time)");
 				Console.WriteLine();
 				Console.WriteLine("The following placeholder variants are available:");
 				Console.WriteLine("  {utdate} and {uttime} print commit date/time in UTC.");
