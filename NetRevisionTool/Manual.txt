@@ -1,0 +1,139 @@
+﻿♦NetRevisionTool♣
+Injects the current VCS revision into a .NET assembly build.
+© Yves Goergen, http://unclassified.software/apps/netrevisiontool
+
+Usage: NetRevisionTool [options] [path]
+
+The path parameter is used to locate the project’s AssemblyInfo files that shall be updated. Therefore the path parameter must be the project’s root directory. If no path is specified, the current working directory is used.
+
+♦OPTIONS♣
+
+/help, /?        Shows this help text.
+/version         Shows the application version.
+/debug           Shows debug output during processing.
+
+/patch           Patches any found AssemblyInfo source file.
+/restore         Restores patched files.
+
+/format <str>    Sets the revision format string. May also be found from source files.
+/revonly         Only sets the forth part of an existing version in the simple version attributes to the revision number, if available.
+/simple          Updates only the simple assembly version attributes in the source.
+/info            Updates only the informational assembly version attribute in the source.
+
+/require <vcs>   Requires a working directory of the specified VCS.
+/rejectmod       Quits with an error return code if the working directory is modified.
+/multi           Multi-project mode: Processes all project subdirectories. The path parameter must be the .sln file.
+/decode <revId>  Decodes a formatted revision ID. Set /format or keep a format in the AssemblyInfo file.
+/predict         Predicts the next 20 revision IDs. Set /format or keep a format in the AssemblyInfo file.
+
+If the /decode option is set, the specified revision ID is decoded into the time it represents.
+If the /patch or /restore options are not set, the generated revision ID is just displayed.
+If the /format option is not set, the format string is searched in the AssemblyInfo source file from the AssemblyInformationalVersion attribute.
+If the directory is not a valid working directory of any supported VCS, the current time is taken for the commit time. If the /require option is set, an error occurs.
+
+♦ASSEMBLYVERSION ATTRIBUTES♣
+
+AssemblyVersion      Identifies the assembly. Must be dotted-numeric (max. 65535).
+AssemblyFileVersion  Saved in the Win32 file version resource. Must be dotted-numeric (max. 65535).
+AssemblyInformationalVersion
+                     Free descriptive text that may contain version names like “beta” or a VCS commit hash.
+
+The latter attribute is always set to the full generated revision ID. The first two (simple) can only be set if the revision ID starts with a dotted-numeric version. If the simple version attributes shall be set but the revision ID is not suitable, an error occurs.
+
+♦REVISION FORMAT STRING♣
+
+The format defines how information about the commit or revision is formatted into the final revision ID. It is a plain string that contains placeholders in {curly braces}. Each placeholder is a simple data field or encodes a time value using a scheme and optional configuration arguments.
+
+♦DATA FIELDS♣
+
+{chash}            Full commit hash.
+{CHASH}            Full commit hash, in upper case.
+{chash:<length>}   Commit hash truncated to the specified length.
+{revnum}           Revision number.
+{revnum-<offset>}  Revision number minus the offset. (Also available with +)
+{!}                The “!” character if the working directory is modified, otherwise empty.
+{!:<string>}       The specified string if the working directory is modified, otherwise empty.
+{tz}               Local time zone name.
+
+♦TIME SCHEMES♣
+
+Schemes convert a commit or build time to a compact string representation. They can be used to assign incrementing versions if no revision number is provided by the VCS. First, select from the build or commit time with {b:…} or {c:…}. This is followed by the scheme name. There are 3 types of schemes.
+
+♦Readable date/time:♣ Produces a readable date or time string in several formats.
+  ymd    Year, month, day, no separator.
+  ymd-   Year, month, day, separated by “-”.
+  ymd.   Year, month, day, separated by “.”.
+  hms    Hour, minute, second, no separator.
+  hms-   Hour, minute, second, separated by “-”.
+  hms:   Hour, minute, second, separated by “:”.
+  hms.   Hour, minute, second, separated by “.”.
+  hm     Hour, minute, no separator.
+  hm-    Hour, minute, separated by “-”.
+  hm:    Hour, minute, separated by “:”.
+  hm.    Hour, minute, separated by “.”.
+  h      Hour only.
+Prefix with “u” for UTC instead of local time zone.
+
+♦Dotted-decimal:♣ Generates regular dotted version numbers with two segments. The first describes the days since the base year, the second the number of intervals since midnight (UTC). This scheme consists of multiple colon-separated values: interval length, base year.
+The interval length is a number followed by “s” for seconds, “m” for minutes, “h” for hours, or “d” for days. Practical intervals are “15m” (2 digits), “2m” (3 digits).
+A shortcut to the 15-minute interval is {dmin:<year>}.
+
+♦Base-encoding:♣ Converts a linear value to a higher number base to create more compact digit/letter combinations. These schemes consist of multiple colon-separated values: number base, interval length, base year, minimum output length.
+Number base can be from 2 to 36. The digits 0–9 and then letters a–z are used. The higher the base, the higher the chance that profane words appear in a revision ID. Base 28 uses an optimised alphabet without vowels and similar characters to avoid errors when hand-writing and undesired words.
+The number of passed intervals since the base year is encoded for the result (UTC). The minimum length padding generates fixed-length comparable strings. Set the length to a value that lasts for as long as you plan to use this versioning scheme (rec’d 30 years). Practical combinations are “16:1m” (6 chars), “28:20m” (4 chars), “36:10m” (4 chars).
+All letters are lower case. Use a capital {B:…} or {C:…} for upper case.
+
+♦Examples:♣
+  {b:ymd-}             Local build date, like “2015-12-31”.
+  {c:hm.}              Local commit time of day, like “23.59”.
+  {c:uhm}              UTC commit time of day, like “2359”.
+  {c:15m:2015}         Dotted decimal from commit time since 2015, like “365.95”.
+  {dmin:2015}          Same as previous (short syntax from version 1.x).
+  {c:16:1m:2014}       Base-16 encoding of minutes from commit time since 2014, like “abcdef”.
+  {b:28:20m:2013:4}    Base-28 encoding of 20-minute intervals from build time since 2013, like “1xy9”.
+  {bmin:2013:4}        Same as previous (short syntax from version 1.x).
+  {B:28:20m:2013:4}    Base-28 encoding (upper case) of 20-minute intervals from build time since 2013, like “1XY9”.
+
+♦C# EXAMPLE♣
+
+[assembly: AssemblyVersion("0.0")]
+[assembly: AssemblyInformationalVersion("1.{c:15m:2013}-{chash:6}-{c:ymd}")]
+  ↓
+[assembly: AssemblyVersion("1.93.42")]
+[assembly: AssemblyInformationalVersion("1.93.42-45d4e3-20130401")]
+
+When using /revonly:
+
+[assembly: AssemblyVersion("1.2.0.0")]
+[assembly: AssemblyFileVersion("1.3")]
+  ↓
+[assembly: AssemblyVersion("1.2.0.345")]
+[assembly: AssemblyFileVersion("1.3.0.345")]
+
+♦BATCH EXAMPLE♣
+
+Write to a file outside the working directory to avoid false modify.
+
+NetRevisionTool /format "SET rev={chash:8}" > %temp%\rev.cmd
+  ↓
+SET rev=45d4e3c0
+
+♦MSBUILD INTEGRATION♣
+
+Set the path argument as "$(ProjectDir)" (with quotes) when calling as pre- or post-build command in an MSBuild project. Set the post-build command to “always” to ensure that the modified source files are always restored correctly.
+
+Note: The PowerShell build framework (http://u10d.de/psbuild) integrates NetRevisionTool and always uses it in multi-project mode. Per-project invocations are automatically disabled through the environment variable %SuppressNetRevisionTool%. You might remove the pre/postbuild actions for solutions with many (like > 20) projects for better performance and let psbuild alone inject version IDs with one call per solution.
+
+♦SOURCE CODE♣
+
+Only C# and VB.NET projects and source files can be patched. Other project types are ignored in solution files. Other source code language files are not found.
+
+♦VCS PROVIDERS♣
+
+Git (for Windows) CLI must be installed using the setup for Windows or in one of %ProgramFiles*%\\Git* or in the PATH environment variable.
+
+SVN CLI (svn and svnversion) must be available on the system. This is included in the “CLI” option of TortoiseSVN. Other options are considered (see source code). SVN externals are entirely untested!
+
+♦TROUBLESHOOTING♣
+
+Be sure not to have the AssemblyInfo file opened in the IDE while building the project, or the version modifications will be ignored by the compiler.

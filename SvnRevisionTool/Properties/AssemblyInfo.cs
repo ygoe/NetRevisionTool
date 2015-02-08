@@ -13,7 +13,7 @@ using System.Runtime.InteropServices;
 // 2. Minor version number, should ne increased with minor feature changes or new features
 // 3. Bugfix number, should be set or increased for bugfix releases of a previous version
 // 4. Unused
-[assembly: AssemblyVersion("1.7.4")]
+[assembly: AssemblyVersion("1.8")]
 
 #if NET20
 #if DEBUG
@@ -33,8 +33,10 @@ using System.Runtime.InteropServices;
 
 // Version history:
 //
-// 1.7.4 (2015-01-29)
-// * Added decimal 15-minutes version format as {dmin} to support strictly numeric versions
+// 1.8 (2015-02-02)
+// * Merged duplicate code into a shared file VersionConverter.cs
+// * Added decimal 15- and 2-minutes version format as {dmin} and {d2min} to support strictly numeric versions
+// * Ignoring projects on restore if there is nothing to restore (from GitRevisionTool 1.5.1)
 //
 // 1.7.3 (2015-01-26)
 // * Added separate .NET 4.0 build, recommended for Windows 8/10 or all VS 2010+ projects

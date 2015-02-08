@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.Win32;
+using RevisionToolShared;
 using Unclassified;
 
 namespace GitRevisionTool
@@ -14,6 +15,7 @@ namespace GitRevisionTool
 	{
 		private static string gitExeName = Environment.OSVersion.Platform == PlatformID.Unix ? "git" : "git.exe";
 		private static bool multiProjectMode;
+		private static bool onlyInformationalVersion;
 		private static string revision;
 		private static bool debugOutput;
 		private static bool isModified;
@@ -37,6 +39,8 @@ namespace GitRevisionTool
 			clp.AddKnownOption("B", "de-bmin");
 			clp.AddKnownOption("", "de-b36min");
 			clp.AddKnownOption("D", "de-dmin");
+			clp.AddKnownOption("", "de-d2min");
+			clp.AddKnownOption("I", "only-infver");
 			clp.AddKnownOption("M", "stop-if-modified");
 			clp.AddKnownOption("X", "de-xmin");
 			clp.AddKnownOption("", "debug");
@@ -50,133 +54,35 @@ namespace GitRevisionTool
 			}
 			if (clp.IsOptionSet("X"))
 			{
-				int baseYear;
-				if (!int.TryParse(clp.GetArgument(0), out baseYear))
-				{
-					Console.Error.WriteLine("Invalid argument: Base year expected");
-					return 1;
-				}
-				string xmin = clp.GetArgument(1).Trim().ToLowerInvariant();
-				DateTime time = DehexMinutes(baseYear, xmin);
-				if (time == DateTime.MinValue)
-				{
-					Console.Error.WriteLine("Invalid xmin value.");
-					return 0;
-				}
-				Console.WriteLine(time.ToString("yyyy-MM-dd HH:mm") + " UTC");
-				Console.WriteLine(time.ToLocalTime().ToString("yyyy-MM-dd HH:mm K"));
-				return 0;
+				return VersionConverter.ShowDehexMinutes(clp);
 			}
 			if (clp.IsOptionSet("B"))
 			{
-				int baseYear;
-				if (!int.TryParse(clp.GetArgument(0), out baseYear))
-				{
-					Console.Error.WriteLine("Invalid argument: Base year expected");
-					return 1;
-				}
-				string bmin = clp.GetArgument(1).Trim().ToLowerInvariant();
-				DateTime time = Debase28Minutes(baseYear, bmin);
-				if (time == DateTime.MinValue)
-				{
-					Console.Error.WriteLine("Invalid bmin value.");
-					return 0;
-				}
-				Console.WriteLine(time.ToString("yyyy-MM-dd HH:mm") + " UTC");
-				Console.WriteLine(time.ToLocalTime().ToString("yyyy-MM-dd HH:mm K"));
-				return 0;
+				return VersionConverter.ShowDebase28Minutes(clp);
 			}
 			if (clp.IsOptionSet("de-b36min"))
 			{
-				int baseYear;
-				if (!int.TryParse(clp.GetArgument(0), out baseYear))
-				{
-					Console.Error.WriteLine("Invalid argument: Base year expected");
-					return 1;
-				}
-				string bmin = clp.GetArgument(1).Trim().ToLowerInvariant();
-				DateTime time = Debase36Minutes(baseYear, bmin);
-				if (time == DateTime.MinValue)
-				{
-					Console.Error.WriteLine("Invalid b36min value.");
-					return 0;
-				}
-				Console.WriteLine(time.ToString("yyyy-MM-dd HH:mm") + " UTC");
-				Console.WriteLine(time.ToLocalTime().ToString("yyyy-MM-dd HH:mm K"));
-				return 0;
+				return VersionConverter.ShowDebase36Minutes(clp);
 			}
 			if (clp.IsOptionSet("D"))
 			{
-				int baseYear;
-				if (!int.TryParse(clp.GetArgument(0), out baseYear))
-				{
-					Console.Error.WriteLine("Invalid argument: Base year expected");
-					return 1;
-				}
-				string dmin = clp.GetArgument(1).Trim();
-				DateTime time = DedecMinutes(baseYear, dmin);
-				if (time == DateTime.MinValue)
-				{
-					Console.Error.WriteLine("Invalid dmin value.");
-					return 0;
-				}
-				Console.WriteLine(time.ToString("yyyy-MM-dd HH:mm") + " UTC");
-				Console.WriteLine(time.ToLocalTime().ToString("yyyy-MM-dd HH:mm K"));
-				return 0;
+				return VersionConverter.ShowDedecMinutes(clp);
+			}
+			if (clp.IsOptionSet("de-d2min"))
+			{
+				return VersionConverter.ShowDedec2Minutes(clp);
 			}
 			if (clp.IsOptionSet("x"))
 			{
-				int baseYear;
-				if (!int.TryParse(clp.GetArgument(0), out baseYear))
-				{
-					Console.Error.WriteLine("Invalid argument: Base year expected");
-					return 1;
-				}
-				revTime = DateTime.UtcNow;
-				long ticks1min = TimeSpan.FromMinutes(1).Ticks;
-				revTime = new DateTime(revTime.Ticks / ticks1min * ticks1min, DateTimeKind.Utc);
-				for (int i = 0; i < 10; i++)
-				{
-					Console.WriteLine(revTime.ToLocalTime().ToString("yyyy-MM-dd HH:mm K") + " = " + HexMinutes(baseYear, 1));
-					revTime = revTime.AddMinutes(1);
-				}
-				return 0;
+				return VersionConverter.ShowTestHexMinutes(clp);
 			}
 			if (clp.IsOptionSet("b"))
 			{
-				int baseYear;
-				if (!int.TryParse(clp.GetArgument(0), out baseYear))
-				{
-					Console.Error.WriteLine("Invalid argument: Base year expected");
-					return 1;
-				}
-				revTime = DateTime.UtcNow;
-				long ticks20min = TimeSpan.FromMinutes(20).Ticks;
-				revTime = new DateTime(revTime.Ticks / ticks20min * ticks20min, DateTimeKind.Utc);
-				for (int i = 0; i < 10; i++)
-				{
-					Console.WriteLine(revTime.ToLocalTime().ToString("yyyy-MM-dd HH:mm K") + " = " + Base28Minutes(baseYear, 1));
-					revTime = revTime.AddMinutes(20);
-				}
-				return 0;
+				return VersionConverter.ShowTestBase28Minutes(clp);
 			}
 			if (clp.IsOptionSet("test-b36min"))
 			{
-				int baseYear;
-				if (!int.TryParse(clp.GetArgument(0), out baseYear))
-				{
-					Console.Error.WriteLine("Invalid argument: Base year expected");
-					return 1;
-				}
-				revTime = DateTime.UtcNow;
-				long ticks10min = TimeSpan.FromMinutes(10).Ticks;
-				revTime = new DateTime(revTime.Ticks / ticks10min * ticks10min, DateTimeKind.Utc);
-				for (int i = 0; i < 10; i++)
-				{
-					Console.WriteLine(revTime.ToLocalTime().ToString("yyyy-MM-dd HH:mm K") + " = " + Base36Minutes(baseYear, 1));
-					revTime = revTime.AddMinutes(10);
-				}
-				return 0;
+				return VersionConverter.ShowTestBase36Minutes(clp);
 			}
 
 			buildTime = DateTimeOffset.Now;
@@ -187,6 +93,7 @@ namespace GitRevisionTool
 			bool showRevision = clp.IsOptionSet("r");
 			bool stopIfModified = clp.IsOptionSet("M");
 			bool ignoreMissing = clp.IsOptionSet("i");
+			onlyInformationalVersion = clp.IsOptionSet("I");
 			string path = clp.GetArgument(0);
 			string customFormat = "{!}{commit}";
 			if (clp.IsOptionSet("f"))
@@ -343,6 +250,7 @@ namespace GitRevisionTool
 
 		private static bool PatchAssemblyInfoFile(string path)
 		{
+			// Find AssemblyInfo file
 			string aiFilename = Path.Combine(path, Path.Combine("Properties", "AssemblyInfo.cs"));
 			if (!File.Exists(aiFilename))
 			{
@@ -363,6 +271,8 @@ namespace GitRevisionTool
 				Console.Error.WriteLine("Error: Assembly info file not found.");
 				return false;
 			}
+			
+			// Create backup
 			string aiBackup = aiFilename + ".bak";
 			if (!File.Exists(aiBackup))
 			{
@@ -374,6 +284,7 @@ namespace GitRevisionTool
 			if (debugOutput)
 				Console.Error.WriteLine("Patching " + Path.GetFileName(aiFilename) + "...");
 
+			// Language-dependent configuration (C#, Visual Basic)
 			string attrStart = null, attrEnd = null;
 			switch (Path.GetExtension(aiFilename).ToLower())
 			{
@@ -392,33 +303,102 @@ namespace GitRevisionTool
 					return false;
 			}
 
-			StreamReader sr = new StreamReader(aiBackup, Encoding.Default, true);
-			sr.Peek();
-			StreamWriter sw = new StreamWriter(aiFilename, false, sr.CurrentEncoding);
-
-			while (!sr.EndOfStream)
+			// Read source file
+			List<string> lines = new List<string>();
+			List<string> lines2 = new List<string>();
+			Encoding encoding = null;
+			using (StreamReader sr = new StreamReader(aiBackup, Encoding.Default, true))
 			{
-				string line = sr.ReadLine();
+				// Detect encoding from source file
+				sr.Peek();
+				encoding = sr.CurrentEncoding;
 
+				// Read all lines from source file into lines buffer
+				while (!sr.EndOfStream)
+				{
+					string line = sr.ReadLine();
+					lines.Add(line);
+				}
+			}
+
+			// Process content
+			string versionFormat = null;
+
+			// Find and process AssemblyInformationalVersionAttribute, remember version format
+			lines2.Clear();
+			foreach (string _line in lines)
+			{
+				string line = _line;   // Make writable copy
 				Match m;
 				m = Regex.Match(
 					line,
-					@"^(\s*\" + attrStart + @"\s*assembly\s*:\s*AssemblyInformationalVersion\s*\(\s*"")(.*)(""\s*\)\s*\" + attrEnd + @".*)$",
+					@"^(\s*\" + attrStart + @"\s*assembly\s*:\s*AssemblyInformationalVersion\s*\(\s*"")(.*?)(""\s*\)\s*\" + attrEnd + @".*)$",
 					RegexOptions.IgnoreCase);
 				if (m.Success)
 				{
-					string value = m.Groups[2].Value;
-					value = ResolveFormat(value);
+					versionFormat = m.Groups[2].Value;
+					string value = ResolveFormat(versionFormat);
 					line = m.Groups[1].Value + value + m.Groups[3].Value;
 					if (debugOutput)
 						Console.Error.WriteLine("Found AssemblyInformationalVersion attribute");
 				}
+				lines2.Add(line);
+			}
+			lines.Clear();
+			lines.AddRange(lines2);
 
-				sw.WriteLine(line);
+			// Process AssemblyVersionAttribute and AssemblyFileVersionAttribute only if a version
+			// format was found in AssemblyInformationalVersionAttribute
+			if (!onlyInformationalVersion && versionFormat != null)
+			{
+				string truncVersion = Regex.Replace(ResolveFormat(versionFormat), @"[^0-9.].*$", "");
+				if (!truncVersion.Contains("."))
+				{
+					Console.Error.WriteLine("Version cannot be truncated to dotted-numeric: " + revision);
+					return false;
+				}
+
+				// Process AssemblyVersionAttribute and AssemblyFileVersionAttribute
+				lines2.Clear();
+				foreach (string _line in lines)
+				{
+					string line = _line;   // Make writable copy
+					Match m;
+
+					m = Regex.Match(
+						line,
+						@"^(\s*\" + attrStart + @"\s*assembly\s*:\s*AssemblyVersion\s*\(\s*"")[0-9.]+(""\s*\)\s*\" + attrEnd + @".*)$",
+						RegexOptions.IgnoreCase);
+					if (m.Success)
+					{
+						line = m.Groups[1].Value + truncVersion + m.Groups[2].Value;
+						if (debugOutput)
+							Console.Error.WriteLine("Found AssemblyVersion attribute");
+					}
+					m = Regex.Match(
+						line,
+						@"^(\s*\" + attrStart + @"\s*assembly\s*:\s*AssemblyFileVersion\s*\(\s*"")[0-9.]+(""\s*\)\s*\" + attrEnd + @".*)$",
+						RegexOptions.IgnoreCase);
+					if (m.Success)
+					{
+						line = m.Groups[1].Value + truncVersion + m.Groups[2].Value;
+						if (debugOutput)
+							Console.Error.WriteLine("Found AssemblyFileVersion attribute");
+					}
+					lines2.Add(line);
+				}
+				lines.Clear();
+				lines.AddRange(lines2);
 			}
 
-			sr.Close();
-			sw.Close();
+			// Write contents to original file name
+			using (StreamWriter sw = new StreamWriter(aiFilename, false, encoding))
+			{
+				foreach (string line in lines)
+				{
+					sw.WriteLine(line);
+				}
+			}
 			if (debugOutput)
 				Console.Error.WriteLine("Patched " + Path.GetFileName(aiFilename));
 			return true;
@@ -426,6 +406,7 @@ namespace GitRevisionTool
 
 		private static bool RestoreAssemblyInfoFile(string path)
 		{
+			// Find AssemblyInfo file
 			string aiFilename = Path.Combine(path, Path.Combine("Properties", "AssemblyInfo.cs"));
 			if (!File.Exists(aiFilename))
 			{
@@ -444,6 +425,8 @@ namespace GitRevisionTool
 				Console.Error.WriteLine("Error: Assembly info file not found.");
 				return false;
 			}
+			
+			// Restore backup
 			string aiBackup = aiFilename + ".bak";
 			if (File.Exists(aiBackup))
 			{
@@ -508,191 +491,22 @@ namespace GitRevisionTool
 			value = Regex.Replace(value, @"\{!:(.*?)\}", delegate(Match m) { return isModified ? m.Groups[1].Value : ""; });
 			value = Regex.Replace(value, @"\{commit:([1-3][0-9]?|40?|[5-9])\}", delegate(Match m) { return revision.Substring(0, int.Parse(m.Groups[1].Value)); });
 
-			value = Regex.Replace(value, @"\{xmin:([0-9]{4})\}", delegate(Match m) { return HexMinutes(int.Parse(m.Groups[1].Value), 1); });
-			value = Regex.Replace(value, @"\{xmin:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return HexMinutes(int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)); });
-			value = Regex.Replace(value, @"\{b36min:([0-9]{4})\}", delegate(Match m) { return Base36Minutes(int.Parse(m.Groups[1].Value), 1); });
-			value = Regex.Replace(value, @"\{b36min:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return Base36Minutes(int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)); });
-			value = Regex.Replace(value, @"\{bmin:([0-9]{4})\}", delegate(Match m) { return Base28Minutes(int.Parse(m.Groups[1].Value), 1); });
-			value = Regex.Replace(value, @"\{bmin:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return Base28Minutes(int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)); });
-			value = Regex.Replace(value, @"\{dmin:([0-9]{4})\}", delegate(Match m) { return DecMinutes(int.Parse(m.Groups[1].Value)); });
+			value = Regex.Replace(value, @"\{xmin:([0-9]{4})\}", delegate(Match m) { return VersionConverter.HexMinutes(revTime, int.Parse(m.Groups[1].Value), 1); });
+			value = Regex.Replace(value, @"\{xmin:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return VersionConverter.HexMinutes(revTime, int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)); });
+			value = Regex.Replace(value, @"\{b36min:([0-9]{4})\}", delegate(Match m) { return VersionConverter.Base36Minutes(revTime, int.Parse(m.Groups[1].Value), 1); });
+			value = Regex.Replace(value, @"\{b36min:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return VersionConverter.Base36Minutes(revTime, int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)); });
+			value = Regex.Replace(value, @"\{bmin:([0-9]{4})\}", delegate(Match m) { return VersionConverter.Base28Minutes(revTime, int.Parse(m.Groups[1].Value), 1); });
+			value = Regex.Replace(value, @"\{bmin:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return VersionConverter.Base28Minutes(revTime, int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)); });
+			value = Regex.Replace(value, @"\{dmin:([0-9]{4})\}", delegate(Match m) { return VersionConverter.DecMinutes(revTime, int.Parse(m.Groups[1].Value)); });
+			value = Regex.Replace(value, @"\{d2min:([0-9]{4})\}", delegate(Match m) { return VersionConverter.Dec2Minutes(revTime, int.Parse(m.Groups[1].Value)); });
 
-			value = Regex.Replace(value, @"\{Xmin:([0-9]{4})\}", delegate(Match m) { return HexMinutes(int.Parse(m.Groups[1].Value), 1).ToUpperInvariant(); });
-			value = Regex.Replace(value, @"\{Xmin:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return HexMinutes(int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)).ToUpperInvariant(); });
-			value = Regex.Replace(value, @"\{B36min:([0-9]{4})\}", delegate(Match m) { return Base36Minutes(int.Parse(m.Groups[1].Value), 1).ToUpperInvariant(); });
-			value = Regex.Replace(value, @"\{B36min:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return Base36Minutes(int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)).ToUpperInvariant(); });
-			value = Regex.Replace(value, @"\{Bmin:([0-9]{4})\}", delegate(Match m) { return Base28Minutes(int.Parse(m.Groups[1].Value), 1).ToUpperInvariant(); });
-			value = Regex.Replace(value, @"\{Bmin:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return Base28Minutes(int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)).ToUpperInvariant(); });
+			value = Regex.Replace(value, @"\{Xmin:([0-9]{4})\}", delegate(Match m) { return VersionConverter.HexMinutes(revTime, int.Parse(m.Groups[1].Value), 1).ToUpperInvariant(); });
+			value = Regex.Replace(value, @"\{Xmin:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return VersionConverter.HexMinutes(revTime, int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)).ToUpperInvariant(); });
+			value = Regex.Replace(value, @"\{B36min:([0-9]{4})\}", delegate(Match m) { return VersionConverter.Base36Minutes(revTime, int.Parse(m.Groups[1].Value), 1).ToUpperInvariant(); });
+			value = Regex.Replace(value, @"\{B36min:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return VersionConverter.Base36Minutes(revTime, int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)).ToUpperInvariant(); });
+			value = Regex.Replace(value, @"\{Bmin:([0-9]{4})\}", delegate(Match m) { return VersionConverter.Base28Minutes(revTime, int.Parse(m.Groups[1].Value), 1).ToUpperInvariant(); });
+			value = Regex.Replace(value, @"\{Bmin:([0-9]{4}):([0-9]{1,2})\}", delegate(Match m) { return VersionConverter.Base28Minutes(revTime, int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)).ToUpperInvariant(); });
 			return value;
-		}
-
-		private static string HexMinutes(int baseYear, int length)
-		{
-			int min = (int) (revTime.UtcDateTime - new DateTime(baseYear, 1, 1)).TotalMinutes;
-			if (min < 0)
-				return "-" + (-min).ToString("x" + length);
-			else
-				return min.ToString("x" + length);
-		}
-
-		private static DateTime DehexMinutes(int baseYear, string xmin)
-		{
-			bool negative = false;
-			if (xmin.StartsWith("-"))
-			{
-				negative = true;
-				xmin = xmin.Substring(1);
-			}
-			int min = int.Parse(xmin, System.Globalization.NumberStyles.AllowHexSpecifier);
-			try
-			{
-				return new DateTime(baseYear, 1, 1).AddMinutes(negative ? -min : min);
-			}
-			catch
-			{
-				return DateTime.MinValue;
-			}
-		}
-
-		/// <summary>
-		/// List of digits for the base28 representation. This uses the digits 0 through 9, and
-		/// all characters from a-z that are no vowels and have a low chance of being confused
-		/// with digits or each other when hand-written. Omitting vowels prevents generating
-		/// profane words.
-		/// </summary>
-		static private char[] base28Chars = new char[]
-		{
-			'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'b', 'c', 'd', 'f', 'g', 'h', 'j',
-			'k', 'm', 'n', 'p', 'q', 'r', 't', 'v', 'w', 'x', 'y'
-		};
-
-		private static string Base28Minutes(int baseYear, int length)
-		{
-			int min = (int) ((revTime.UtcDateTime - new DateTime(baseYear, 1, 1)).TotalMinutes / 20);
-			bool negative = false;
-			if (min < 0)
-			{
-				negative = true;
-				min = -min;
-			}
-			string s = "";
-			while (min > 0)
-			{
-				int digit = min % 28;
-				min = min / 28;
-				s = base28Chars[digit] + s;
-			}
-			return (negative ? "-" : "") + s.PadLeft(length, '0');
-		}
-
-		private static DateTime Debase28Minutes(int baseYear, string bmin)
-		{
-			bool negative = false;
-			if (bmin.StartsWith("-"))
-			{
-				negative = true;
-				bmin = bmin.Substring(1);
-			}
-			int min = 0;
-			while (bmin.Length > 0)
-			{
-				int digit = Array.IndexOf(base28Chars, bmin[0]);
-				if (digit == -1)
-				{
-					return DateTime.MinValue;
-				}
-				min = min * 28 + digit;
-				bmin = bmin.Substring(1);
-			}
-			min *= 20;
-			try
-			{
-				return new DateTime(baseYear, 1, 1).AddMinutes(negative ? -min : min);
-			}
-			catch
-			{
-				return DateTime.MinValue;
-			}
-		}
-
-		private static string Base36Minutes(int baseYear, int length)
-		{
-			int min = (int) ((revTime.UtcDateTime - new DateTime(baseYear, 1, 1)).TotalMinutes / 10);
-			bool negative = false;
-			if (min < 0)
-			{
-				negative = true;
-				min = -min;
-			}
-			string s = "";
-			while (min > 0)
-			{
-				int digit = min % 36;
-				min = min / 36;
-				if (digit < 10)
-					s = digit + s;
-				else
-					s = Char.ConvertFromUtf32('a' + (digit - 10)) + s;
-			}
-			return (negative ? "-" : "") + s.PadLeft(length, '0');
-		}
-
-		private static DateTime Debase36Minutes(int baseYear, string bmin)
-		{
-			bool negative = false;
-			if (bmin.StartsWith("-"))
-			{
-				negative = true;
-				bmin = bmin.Substring(1);
-			}
-			int min = 0;
-			while (bmin.Length > 0)
-			{
-				int digit;
-				if (bmin[0] <= '9')
-					digit = bmin[0] - '0';
-				else
-					digit = bmin[0] - 'a' + 10;
-				min = min * 36 + digit;
-				bmin = bmin.Substring(1);
-			}
-			min *= 10;
-			try
-			{
-				return new DateTime(baseYear, 1, 1).AddMinutes(negative ? -min : min);
-			}
-			catch
-			{
-				return DateTime.MinValue;
-			}
-		}
-
-		private static string DecMinutes(int baseYear)
-		{
-			int min = (int) ((revTime.UtcDateTime - new DateTime(baseYear, 1, 1)).TotalMinutes / 15);
-			int minutesPerDay = 24 * 4;
-			if (min < 0)
-				return "0.0";
-			else
-				return (min / minutesPerDay).ToString() + "." + (min % minutesPerDay).ToString();
-		}
-
-		private static DateTime DedecMinutes(int baseYear, string dmin)
-		{
-			string[] parts = dmin.Split('.');
-			if (parts.Length != 2) return DateTime.MinValue;
-			int days, time;
-			if (!int.TryParse(parts[0], out days)) return DateTime.MinValue;
-			if (!int.TryParse(parts[1], out time)) return DateTime.MinValue;
-			if (days < 0 || days >= UInt16.MaxValue) return DateTime.MinValue;
-			if (time < 0 || time >= 96) return DateTime.MinValue;
-			try
-			{
-				return new DateTime(baseYear, 1, 1).AddDays(days).AddMinutes(time * 15);
-			}
-			catch
-			{
-				return DateTime.MinValue;
-			}
 		}
 
 		private static void HandleHelp(bool showHelp)
@@ -761,6 +575,12 @@ namespace GitRevisionTool
 				Console.WriteLine("                  Decodes a bmin value to UTC and local time");
 				Console.WriteLine("  -D, --de-dmin <year> <dmin>");
 				Console.WriteLine("                  Decodes a dmin value to UTC and local time");
+				Console.WriteLine("  --de-d2min <year> <d2min>");
+				Console.WriteLine("                  Decodes a d2min value to UTC and local time");
+				Console.WriteLine("  -I, --only-infver");
+				Console.WriteLine("                  Only changes the AssemblyInformationalVersion attribute,");
+				Console.WriteLine("                  not AssemblyVersion or AssemblyFileVersion.");
+				Console.WriteLine("                  (Set if not using a truncatable numeric format.)");
 				Console.WriteLine("  -M, --stop-if-modified");
 				Console.WriteLine("                  Stops if the working copy contains uncommited changes");
 				Console.WriteLine("  -X, --de-xmin <year> <xmin>");
@@ -780,7 +600,10 @@ namespace GitRevisionTool
 				Console.WriteLine("           modified source file is always restored correctly.");
 				Console.WriteLine();
 				Console.WriteLine("The following assembly attributes are supported:");
-				Console.WriteLine("  AssemblyInformationalVersion(\"... {commit} {date} {time} ...\")");
+				Console.WriteLine("  AssemblyVersion(\"0.0.0.0\")");
+				Console.WriteLine("  AssemblyFileVersion(\"0.0\")");
+				Console.WriteLine("    (Both set to truncated numeric version.)");
+				Console.WriteLine("  AssemblyInformationalVersion(\"0.0 ... {commit} {date} {time} ...\")");
 				Console.WriteLine();
 				Console.WriteLine("The following placeholders are supported:");
 				Console.WriteLine("  {!}                Prints ! if modified");
@@ -811,8 +634,9 @@ namespace GitRevisionTool
 				Console.WriteLine("  {b36min:<year>}");
 				Console.WriteLine("  {b36min:<year>:<length>}");
 				Console.WriteLine("                     Like bmin, but with 10 minutes and full base36 format");
-				Console.WriteLine("  {dmin:<year>}");
-				Console.WriteLine("                     Prints 15-minutes since year <year> in a decimal");
+				Console.WriteLine("  {dmin:<year>}      Prints 15-minutes since year <year> in a decimal");
+				Console.WriteLine("                     dot-separated format (days.time)");
+				Console.WriteLine("  {d2min:<year>}     Prints 2-minutes since year <year> in a decimal");
 				Console.WriteLine("                     dot-separated format (days.time)");
 				Console.WriteLine();
 				Console.WriteLine("The following placeholder variants are available:");
@@ -821,9 +645,11 @@ namespace GitRevisionTool
 				Console.WriteLine("  {Xmin}, {Bmin} and {B36min} use uppercase letters.");
 				Console.WriteLine();
 				Console.WriteLine("Example for C#:");
-				Console.WriteLine("  [assembly: AssemblyInformationalVersion(\"MyApp {commit:8}/{date}\")]");
+				Console.WriteLine("  [assembly: AssemblyVersion(\"0.0\")]");
+				Console.WriteLine("  [assembly: AssemblyInformationalVersion(\"1.{dmin:2015}-{commit:8}-{date}\")]");
 				Console.WriteLine("Will be replaced with:");
-				Console.WriteLine("  [assembly: AssemblyInformationalVersion(\"MyApp 45d4e32f/20111231\")]");
+				Console.WriteLine("  [assembly: AssemblyVersion(\"1.92.42\")]");
+				Console.WriteLine("  [assembly: AssemblyInformationalVersion(\"1.93.42-45d4e32f-20111231\")]");
 				Console.WriteLine();
 				Console.WriteLine("Example for batch file:");
 				Console.WriteLine("  GitRevisionTool --format \"SET revid={commit:8}\" > %temp%\\revid.cmd");
@@ -839,6 +665,8 @@ namespace GitRevisionTool
 				Console.WriteLine("           by the compiler.");
 			}
 		}
+
+		#region Git handling
 
 		private static void ProcessDirectory(string path, bool silent)
 		{
@@ -901,49 +729,6 @@ namespace GitRevisionTool
 				p.Kill();
 			}
 			isModified = !string.IsNullOrEmpty(line);
-
-			return;
-
-			//// Try to read the files myself
-			//string origPath = path;
-			//while (Directory.Exists(path) &&
-			//    !Directory.Exists(Path.Combine(path, ".git")))
-			//{
-			//    path = Path.GetDirectoryName(path);
-			//}
-			//path = Path.Combine(path, ".git");
-			//if (!Directory.Exists(path))
-			//{
-			//    Console.Error.WriteLine("No Git hidden directory found in " + origPath + " and up.");
-			//    return;
-			//}
-
-			//if (debugOutput)
-			//    Console.Error.WriteLine("Processing Git directory " + path);
-
-			//try
-			//{
-			//    string[] lines = File.ReadAllLines(Path.Combine(path, "HEAD"));
-			//    if (lines[0].StartsWith("ref: refs/"))
-			//    {
-			//        lines = File.ReadAllLines(Path.Combine(path, lines[0].Substring(5).Replace('/', Path.DirectorySeparatorChar)));
-			//    }
-			//    string line0 = lines[0].Trim();
-			//    if (Regex.IsMatch(line0, "^[0-9A-Za-z]{40}$"))
-			//    {
-			//        return line0;
-			//    }
-
-			//}
-			//catch (IOException ex)
-			//{
-			//    Console.Error.WriteLine("Warning: Cannot read file " + Path.Combine(path, ".svn\\entries") + ". " +
-			//        ex.GetType().Name + ": " + ex.Message);
-			//}
-			//catch (FormatException)
-			//{
-			//    Console.Error.WriteLine("Warning: File format error in " + Path.Combine(path, ".svn\\entries") + ".");
-			//}
 		}
 
 		private static string FindGitBinary()
@@ -1039,5 +824,7 @@ namespace GitRevisionTool
 					!String.IsNullOrEmpty(Environment.GetEnvironmentVariable("PROCESSOR_ARCHITEW6432"));
 			}
 		}
+
+		#endregion Git handling
 	}
 }
