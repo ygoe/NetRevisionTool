@@ -70,7 +70,7 @@ namespace NetRevisionTool
 			format = Regex.Replace(format, @"\{CHASH:([0-9]+)\}", m => SafeSubstring(RevisionData.CommitHash.ToUpperInvariant(), int.Parse(m.Groups[1].Value)));
 			format = format.Replace("{revnum}", RevisionData.RevisionNumber.ToString());
 			format = Regex.Replace(format, @"\{revnum\s*-\s*([0-9]+)\}", m => (RevisionData.RevisionNumber - int.Parse(m.Groups[1].Value)).ToString());
-			format = Regex.Replace(format, @"\{revnum\s*+\s*([0-9]+)\}", m => (RevisionData.RevisionNumber + int.Parse(m.Groups[1].Value)).ToString());
+			format = Regex.Replace(format, @"\{revnum\s*\+\s*([0-9]+)\}", m => (RevisionData.RevisionNumber + int.Parse(m.Groups[1].Value)).ToString());
 			format = format.Replace("{!}", RevisionData.IsModified ? "!" : "");
 			format = Regex.Replace(format, @"\{!:(.*?)\}", m => RevisionData.IsModified ? m.Groups[1].Value : "");
 			format = format.Replace("{tz}", RevisionData.CommitTime.ToString("%K"));
