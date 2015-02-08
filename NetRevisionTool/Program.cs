@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using NetRevisionTool.VcsProviders;
@@ -41,7 +42,7 @@ namespace NetRevisionTool
 				}
 
 				// Fix console things
-				//Console.OutputEncoding = Encoding.Unicode;   // TODO: Make this work with psbuild, used for proper help output (and nice debug message quotes)
+				Console.OutputEncoding = Encoding.UTF8;
 				Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
 				ConsoleHelper.FixEncoding();
 
