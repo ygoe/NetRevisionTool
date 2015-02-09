@@ -158,6 +158,7 @@ namespace NetRevisionTool
 
 			// Analyse working directory
 			RevisionData data = ProcessDirectory(path, requireVcsOption.Value);
+			data.Normalize();
 
 			// Check for required VCS
 			if (requireVcsOption.IsSet)
@@ -311,6 +312,10 @@ namespace NetRevisionTool
 			{
 				// Trim quotes, they can appear for mysterious reasons from VS/MSBuild
 				path = cmdLine.FreeArguments[0].Trim(' ', '"');
+				if (!Path.IsPathRooted(path))
+				{
+					path = Path.GetFullPath(path);
+				}
 			}
 			else
 			{

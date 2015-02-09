@@ -75,7 +75,8 @@ namespace NetRevisionTool.VcsProviders
 			};
 
 			// Queries the commit hash and time from the latest log entry
-			Program.ShowDebugMessage("Calling git log…");
+			Program.ShowDebugMessage("Executing: git log -n 1 --format=format:\"%H %ci\"");
+			Program.ShowDebugMessage("  WorkingDirectory: " + path);
 			ProcessStartInfo psi = new ProcessStartInfo(gitExec, "log -n 1 --format=format:\"%H %ci\"");
 			psi.WorkingDirectory = path;
 			psi.RedirectStandardOutput = true;
@@ -92,19 +93,20 @@ namespace NetRevisionTool.VcsProviders
 				{
 					data.CommitHash = m.Groups[1].Value;
 					data.CommitTime = DateTimeOffset.Parse(m.Groups[2].Value);
-					p.StandardOutput.ReadToEnd();   // Kindly eat up the remaining output
 					break;
 				}
 			}
+			p.StandardOutput.ReadToEnd();   // Kindly eat up the remaining output
 			if (!p.WaitForExit(1000))
 			{
 				p.Kill();
 			}
 
-			if (data.CommitHash != null)
+			if (!string.IsNullOrEmpty(data.CommitHash))
 			{
 				// Queries the working directory state
-				Program.ShowDebugMessage("Calling git status…");
+				Program.ShowDebugMessage("Executing: git status --porcelain");
+				Program.ShowDebugMessage("  WorkingDirectory: " + path);
 				psi = new ProcessStartInfo(gitExec, "status --porcelain");
 				psi.WorkingDirectory = path;
 				psi.RedirectStandardOutput = true;

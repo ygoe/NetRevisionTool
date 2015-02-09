@@ -63,6 +63,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RevisionData.cs" />
     <Compile Include="RevisionFormat.cs" />
+    <Compile Include="Unclassified\Util\PathUtil.cs" />
     <Compile Include="VcsProviders\GitProvider.cs" />
     <Compile Include="VcsProviders\IVcsProvider.cs" />
     <Compile Include="VcsProviders\SubversionProvider.cs" />

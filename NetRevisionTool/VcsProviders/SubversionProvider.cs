@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.Win32;
+using Unclassified.Util;
 
 namespace NetRevisionTool.VcsProviders
 {
@@ -82,7 +83,17 @@ namespace NetRevisionTool.VcsProviders
 				VcsProvider = this
 			};
 
-			Program.ShowDebugMessage("Calling svnversion…");
+			// svn assumes case-sensitive path names on Windows, which is... bad.
+			string fixedPath = PathUtil.GetExactPath(path);
+			if (fixedPath != path)
+			{
+				Program.ShowDebugMessage("Corrected path to: " + fixedPath, 2);
+			}
+			path = fixedPath;
+
+			// Get revision number
+			Program.ShowDebugMessage("Executing: svnversion");
+			Program.ShowDebugMessage("  WorkingDirectory: " + path);
 			ProcessStartInfo psi = new ProcessStartInfo(svnversionExec);
 			psi.WorkingDirectory = path;
 			psi.RedirectStandardOutput = true;
@@ -102,10 +113,10 @@ namespace NetRevisionTool.VcsProviders
 				if (m.Success)
 				{
 					data.RevisionNumber = int.Parse(m.Groups[1].Value);
-					p.StandardOutput.ReadToEnd();   // Kindly eat up the remaining output
 					break;
 				}
 			}
+			p.StandardOutput.ReadToEnd();   // Kindly eat up the remaining output
 			if (!p.WaitForExit(1000))
 			{
 				p.Kill();
@@ -113,7 +124,8 @@ namespace NetRevisionTool.VcsProviders
 
 			if (data.RevisionNumber == 0) return data;   // Try no more
 
-			Program.ShowDebugMessage("Calling svn status…");
+			Program.ShowDebugMessage("Executing: svn status");
+			Program.ShowDebugMessage("  WorkingDirectory: " + path);
 			psi = new ProcessStartInfo(svnExec, "status");
 			psi.WorkingDirectory = path;
 			psi.RedirectStandardOutput = true;
@@ -131,7 +143,8 @@ namespace NetRevisionTool.VcsProviders
 			}
 			data.IsModified = !string.IsNullOrEmpty(line);
 
-			Program.ShowDebugMessage("Calling svn log…");
+			Program.ShowDebugMessage("Executing: svn log --limit 1");
+			Program.ShowDebugMessage("  WorkingDirectory: " + path);
 			psi = new ProcessStartInfo(svnExec, "log --limit 1");
 			psi.WorkingDirectory = path;
 			psi.RedirectStandardOutput = true;
@@ -148,7 +161,6 @@ namespace NetRevisionTool.VcsProviders
 				if (m.Success)
 				{
 					data.CommitTime = DateTimeOffset.Parse(m.Groups[1].Value);
-					p.StandardOutput.ReadToEnd();   // Kindly eat up the remaining output
 					break;
 				}
 			}

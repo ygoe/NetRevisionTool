@@ -30,5 +30,13 @@ namespace NetRevisionTool
 		/// Gets or sets a value indicating whether the working copy is modified.
 		/// </summary>
 		public bool IsModified { get; set; }
+
+		/// <summary>
+		/// Normalizes all data properties to prevent null values.
+		/// </summary>
+		public void Normalize()
+		{
+			if (CommitHash == null) CommitHash = "";
+		}
 	}
 }
