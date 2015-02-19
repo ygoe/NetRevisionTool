@@ -75,28 +75,49 @@ namespace NetRevisionTool.VcsProviders
 			};
 
 			// Queries the commit hash and time from the latest log entry
-			Program.ShowDebugMessage("Executing: git log -n 1 --format=format:\"%H %ci\"");
+			string gitLogFormat = "%H %ci %ai%n%cN%n%cE%n%aN%n%aE";
+			Program.ShowDebugMessage("Executing: git log -n 1 --format=format:\"" + gitLogFormat + "\"");
 			Program.ShowDebugMessage("  WorkingDirectory: " + path);
-			ProcessStartInfo psi = new ProcessStartInfo(gitExec, "log -n 1 --format=format:\"%H %ci\"");
+			ProcessStartInfo psi = new ProcessStartInfo(gitExec, "log -n 1 --format=format:\"" + gitLogFormat + "\"");
 			psi.WorkingDirectory = path;
 			psi.RedirectStandardOutput = true;
 			psi.StandardOutputEncoding = Encoding.Default;
 			psi.UseShellExecute = false;
 			Process p = Process.Start(psi);
 			string line = null;
+			int lineCount = 0;
 			while (!p.StandardOutput.EndOfStream)
 			{
 				line = p.StandardOutput.ReadLine();
+				lineCount++;
 				Program.ShowDebugMessage(line, 4);
-				Match m = Regex.Match(line, @"^([0-9a-fA-F]{40}) ([0-9-]{10} [0-9:]{8} [0-9+-]{5})");
-				if (m.Success)
+				if (lineCount == 1)
 				{
-					data.CommitHash = m.Groups[1].Value;
-					data.CommitTime = DateTimeOffset.Parse(m.Groups[2].Value);
-					break;
+					Match m = Regex.Match(line, @"^([0-9a-fA-F]{40}) ([0-9-]{10} [0-9:]{8} [0-9+-]{5}) ([0-9-]{10} [0-9:]{8} [0-9+-]{5})");
+					if (m.Success)
+					{
+						data.CommitHash = m.Groups[1].Value;
+						data.CommitTime = DateTimeOffset.Parse(m.Groups[2].Value);
+						data.AuthorTime = DateTimeOffset.Parse(m.Groups[3].Value);
+					}
+				}
+				else if (lineCount == 2)
+				{
+					data.CommitterName = line.Trim();
+				}
+				else if (lineCount == 3)
+				{
+					data.CommitterEMail = line.Trim();
+				}
+				else if (lineCount == 4)
+				{
+					data.AuthorName = line.Trim();
+				}
+				else if (lineCount == 5)
+				{
+					data.AuthorEMail = line.Trim();
 				}
 			}
-			p.StandardOutput.ReadToEnd();   // Kindly eat up the remaining output
 			if (!p.WaitForExit(1000))
 			{
 				p.Kill();
@@ -104,7 +125,7 @@ namespace NetRevisionTool.VcsProviders
 
 			if (!string.IsNullOrEmpty(data.CommitHash))
 			{
-				// Queries the working directory state
+				// Query the working directory state
 				Program.ShowDebugMessage("Executing: git status --porcelain");
 				Program.ShowDebugMessage("  WorkingDirectory: " + path);
 				psi = new ProcessStartInfo(gitExec, "status --porcelain");
@@ -119,6 +140,29 @@ namespace NetRevisionTool.VcsProviders
 					line = p.StandardOutput.ReadLine();
 					Program.ShowDebugMessage(line, 4);
 				}
+				if (!p.WaitForExit(1000))
+				{
+					p.Kill();
+				}
+				data.IsModified = !string.IsNullOrEmpty(line);
+
+				// Query the current branch
+				Program.ShowDebugMessage("Executing: git rev-parse --abbrev-ref HEAD");
+				Program.ShowDebugMessage("  WorkingDirectory: " + path);
+				psi = new ProcessStartInfo(gitExec, "rev-parse --abbrev-ref HEAD");
+				psi.WorkingDirectory = path;
+				psi.RedirectStandardOutput = true;
+				psi.StandardOutputEncoding = Encoding.Default;
+				psi.UseShellExecute = false;
+				p = Process.Start(psi);
+				line = null;
+				if (!p.StandardOutput.EndOfStream)
+				{
+					line = p.StandardOutput.ReadLine();
+					Program.ShowDebugMessage(line, 4);
+					data.Branch = line.Trim();
+				}
+				p.StandardOutput.ReadToEnd();   // Kindly eat up the remaining output
 				if (!p.WaitForExit(1000))
 				{
 					p.Kill();

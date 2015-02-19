@@ -25,13 +25,33 @@ namespace NetRevisionTool
 		/// Initialises a new instance of the <see cref="AssemblyInfoHelper"/> class.
 		/// </summary>
 		/// <param name="path">The project directory to operate in.</param>
-		public AssemblyInfoHelper(string path)
+		/// <param name="throwOnMissingFile">Indicates whether an exception is thrown if the AssemblyInfo file was not found.</param>
+		public AssemblyInfoHelper(string path, bool throwOnMissingFile)
 		{
 			FindAssemblyInfoFile(path);
-			AnalyseFile();
+			if (fileName == null && throwOnMissingFile)
+			{
+				throw new ConsoleException("AssemblyInfo file not found in \"" + path + "\".", ExitCodes.FileNotFound);
+			}
+			if (fileName != null)
+			{
+				AnalyseFile();
+			}
 		}
 
 		#endregion Constructor
+
+		#region Public properties
+
+		/// <summary>
+		/// Gets a value indicating whether the AssemblyInfo file was found.
+		/// </summary>
+		public bool FileExists
+		{
+			get { return fileName != null; }
+		}
+
+		#endregion Public properties
 
 		#region Public methods
 
@@ -151,7 +171,7 @@ namespace NetRevisionTool
 			}
 			if (!File.Exists(fileName))
 			{
-				throw new ConsoleException("AssemblyInfo file not found in \"" + path + "\".", ExitCodes.FileNotFound);
+				fileName = null;
 			}
 		}
 

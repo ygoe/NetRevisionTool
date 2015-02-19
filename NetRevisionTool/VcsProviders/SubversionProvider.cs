@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.Win32;
 using Unclassified.Util;
@@ -143,28 +144,70 @@ namespace NetRevisionTool.VcsProviders
 			}
 			data.IsModified = !string.IsNullOrEmpty(line);
 
-			Program.ShowDebugMessage("Executing: svn log --limit 1");
+			Program.ShowDebugMessage("Executing: svn info");
 			Program.ShowDebugMessage("  WorkingDirectory: " + path);
-			psi = new ProcessStartInfo(svnExec, "log --limit 1");
+			psi = new ProcessStartInfo(svnExec, "info");
 			psi.WorkingDirectory = path;
 			psi.RedirectStandardOutput = true;
 			psi.UseShellExecute = false;
+			psi.StandardOutputEncoding = Encoding.Default;
 			p = Process.Start(psi);
 			line = null;
+			string workingCopyRootPath = null;
 			while (!p.StandardOutput.EndOfStream)
 			{
 				line = p.StandardOutput.ReadLine();
 				Program.ShowDebugMessage(line, 4);
-				// Possible output:
-				// r1234 | username | 2013-12-31 12:00:00 +0100 (Di, 31 Dez 2013) | 1 line
-				Match m = Regex.Match(line, @"([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} [+-][0-9]{4})");
+				// WARNING: This is the info about the commit that has been *last updated to* in the
+				//          specified *subdirectory* of the working directory. The revision number
+				//          printed here belongs to that commit, but does not necessarily match the
+				//          revision number determined above by 'svnversion'.
+				//          If you need consistent data on the commit other than the revision
+				//          number, be sure to always update the entire working directory and set
+				//          the VCS path to its root.
+				Match m = Regex.Match(line, @"^Working Copy Root Path: (.+)");
+				if (m.Success)
+				{
+					workingCopyRootPath = m.Groups[1].Value.Trim();
+				}
+				// Try to be smart and detect the branch from the relative path. This should work
+				// fine if the standard SVN repository tree is used.
+				m = Regex.Match(line, @"^Relative URL: \^(.+)");
+				if (m.Success)
+				{
+					data.Branch = m.Groups[1].Value.Trim().TrimStart('/');
+					if (data.Branch.StartsWith("branches/", StringComparison.Ordinal))
+					{
+						data.Branch = data.Branch.Substring(9);
+					}
+
+					// Cut off the current subdirectory
+					if (workingCopyRootPath != null &&
+						path.StartsWith(workingCopyRootPath, StringComparison.OrdinalIgnoreCase))
+					{
+						int subdirLength = path.Length - workingCopyRootPath.Length;
+						data.Branch = data.Branch.Substring(0, data.Branch.Length - subdirLength);
+					}
+				}
+				// Use "Repository Root" because "URL" is only the URL where the working directory
+				// was checked out from. This can be a subdirectory of the repository if only a part
+				// of it was checked out, like "/trunk" or a branch.
+				m = Regex.Match(line, @"^Repository Root: (.+)");
+				if (m.Success)
+				{
+					data.RepositoryUrl = m.Groups[1].Value.Trim();
+				}
+				m = Regex.Match(line, @"^Last Changed Author: (.+)");
+				if (m.Success)
+				{
+					data.CommitterName = m.Groups[1].Value.Trim();
+				}
+				m = Regex.Match(line, @"^Last Changed Date: ([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} [+-][0-9]{4})");
 				if (m.Success)
 				{
 					data.CommitTime = DateTimeOffset.Parse(m.Groups[1].Value);
-					break;
 				}
 			}
-			p.StandardOutput.ReadToEnd();   // Kindly eat up the remaining output
 			if (!p.WaitForExit(1000))
 			{
 				p.Kill();

@@ -150,7 +150,7 @@ namespace NetRevisionTool
 				// Restore AssemblyInfo file(s)
 				foreach (string projectDir in projectDirs)
 				{
-					var aih = new AssemblyInfoHelper(projectDir);
+					var aih = new AssemblyInfoHelper(projectDir, true);
 					aih.RestoreFile();
 				}
 				return;
@@ -191,15 +191,22 @@ namespace NetRevisionTool
 				AssemblyInfoHelper aih = null;
 				foreach (string projectDir in projectDirs)
 				{
-					aih = new AssemblyInfoHelper(projectDir);
-					format = aih.GetRevisionFormat();
-					if (format != null)
+					aih = new AssemblyInfoHelper(projectDir, false);
+					if (aih.FileExists)
 					{
-						if (projectDirs.Length > 1)
+						format = aih.GetRevisionFormat();
+						if (format != null)
 						{
-							ShowDebugMessage("Found format in project \"" + projectDir + "\".");
+							if (projectDirs.Length > 1)
+							{
+								ShowDebugMessage("Found format in project \"" + projectDir + "\".");
+							}
+							break;
 						}
-						break;
+					}
+					else
+					{
+						ShowDebugMessage("  AssemblyInfo source file not found.", 2);
 					}
 				}
 				if (format != null)
@@ -246,7 +253,7 @@ namespace NetRevisionTool
 
 				foreach (string projectDir in projectDirs)
 				{
-					var aih = new AssemblyInfoHelper(projectDir);
+					var aih = new AssemblyInfoHelper(projectDir, true);
 					aih.PatchFile(format, data, simpleAttributes, informationalAttribute, revisionOnlyOption.IsSet);
 				}
 			}
@@ -316,6 +323,8 @@ namespace NetRevisionTool
 				{
 					path = Path.GetFullPath(path);
 				}
+				// Remove all trailing directory separators to make it safer
+				path = path.TrimEnd('/', '\\');
 			}
 			else
 			{
@@ -374,12 +383,7 @@ namespace NetRevisionTool
 				};
 			}
 
-			ShowDebugMessage("Revision data:");
-			ShowDebugMessage("  CommitHash: " + data.CommitHash);
-			ShowDebugMessage("  CommitTime: " + data.CommitTime.ToString("yyyy-MM-dd HH:mm:ss K"));
-			ShowDebugMessage("  IsModified: " + data.IsModified);
-			ShowDebugMessage("  RevisionNumber: " + data.RevisionNumber);
-			ShowDebugMessage("  VcsProvider: " + data.VcsProvider);
+			data.DumpData();
 			return data;
 		}
 
