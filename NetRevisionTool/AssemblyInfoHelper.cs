@@ -299,6 +299,9 @@ namespace NetRevisionTool
 				truncVersion = Regex.Replace(revisionId, @"[^0-9.].*$", "");
 				if (!truncVersion.Contains("."))
 					throw new ConsoleException("Revision ID cannot be truncated to dotted-numeric: " + revisionId, ExitCodes.NoNumericVersion);
+				Version version;
+				if (!Version.TryParse(truncVersion, out version))
+					throw new ConsoleException("Revision ID cannot be truncated to dotted-numeric: " + revisionId, ExitCodes.NoNumericVersion);
 			}
 
 			// Checking the revision number if we may need it
