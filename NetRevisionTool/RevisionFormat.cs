@@ -74,9 +74,16 @@ namespace NetRevisionTool
 			format = format.Replace("{!}", RevisionData.IsModified ? "!" : "");
 			format = Regex.Replace(format, @"\{!:(.*?)\}", m => RevisionData.IsModified ? m.Groups[1].Value : "");
 			format = format.Replace("{tz}", RevisionData.CommitTime.ToString("%K"));
+			format = format.Replace("{url}", RevisionData.RepositoryUrl);
+			format = format.Replace("{cname}", RevisionData.CommitterName);
+			format = format.Replace("{cmail}", RevisionData.CommitterEMail);
+			format = format.Replace("{aname}", RevisionData.AuthorName);
+			format = format.Replace("{amail}", RevisionData.AuthorEMail);
+			format = format.Replace("{branch}", RevisionData.Branch);
+			format = Regex.Replace(format, @"\{branch:(.*?):(.+?)\}", m => RevisionData.Branch != m.Groups[2].Value ? m.Groups[1].Value + RevisionData.Branch : "");
 
 			// Resolve time schemes
-			format = Regex.Replace(format, @"\{[BbCc]:.+?\}", FormatTimeScheme);
+			format = Regex.Replace(format, @"\{[AaBbCc]:.+?\}", FormatTimeScheme);
 
 			// Partial legacy format compatibility
 			format = format.Replace("{commit}", RevisionData.RevisionNumber > 0 ? RevisionData.RevisionNumber.ToString() : RevisionData.CommitHash);
@@ -110,6 +117,10 @@ namespace NetRevisionTool
 			if (data.TimeSource == TimeSource.Build)
 			{
 				time = BuildTime;
+			}
+			else if (data.TimeSource == TimeSource.Author)
+			{
+				time = RevisionData.AuthorTime;
 			}
 			else
 			{
@@ -158,7 +169,7 @@ namespace NetRevisionTool
 			string intervalType = null;
 
 			// Split scheme string
-			if ((match = Regex.Match(scheme, @"^\{?([bc]):(u?)(ymd|hms|hm|h)([-.:]?)\}?$")).Success)
+			if ((match = Regex.Match(scheme, @"^\{?([abc]):(u?)(ymd|hms|hm|h)([-.:]?)\}?$")).Success)
 			{
 				data.SchemeType = SchemeType.Readable;
 				sourceStr = match.Groups[1].Value;
@@ -166,7 +177,7 @@ namespace NetRevisionTool
 				timeComponents = match.Groups[3].Value;
 				timeSeparator = match.Groups[4].Value;
 			}
-			else if ((match = Regex.Match(scheme, @"^\{?([bc]):([0-9]+)([smhd]):([0-9]+)\}?$")).Success)
+			else if ((match = Regex.Match(scheme, @"^\{?([abc]):([0-9]+)([smhd]):([0-9]+)\}?$")).Success)
 			{
 				data.SchemeType = SchemeType.DottedDecimal;
 				sourceStr = match.Groups[1].Value;
@@ -174,7 +185,7 @@ namespace NetRevisionTool
 				intervalType = match.Groups[3].Value;
 				data.BaseYear = int.Parse(match.Groups[4].Value);
 			}
-			else if ((match = Regex.Match(scheme, @"^\{?([BbCc]):([0-9]+):([0-9]+)([smhd]):([0-9]+)(?::([0-9]+))?\}?$")).Success)
+			else if ((match = Regex.Match(scheme, @"^\{?([AaBbCc]):([0-9]+):([0-9]+)([smhd]):([0-9]+)(?::([0-9]+))?\}?$")).Success)
 			{
 				data.SchemeType = SchemeType.BaseEncoded;
 				sourceStr = match.Groups[1].Value.ToLowerInvariant();
@@ -238,6 +249,7 @@ namespace NetRevisionTool
 			// Select time source
 			switch (sourceStr)
 			{
+				case "a": data.TimeSource = TimeSource.Author; break;
 				case "b": data.TimeSource = TimeSource.Build; break;
 				case "c": data.TimeSource = TimeSource.Commit; break;
 				default:
@@ -599,7 +611,11 @@ namespace NetRevisionTool
 		/// <summary>
 		/// The time when the currently checked-out revision was committed to the repository.
 		/// </summary>
-		Commit
+		Commit,
+		/// <summary>
+		/// The time when the currently checked-out revision was originally authored.
+		/// </summary>
+		Author
 	}
 
 	internal enum SchemeType
