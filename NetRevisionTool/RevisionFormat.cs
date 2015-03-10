@@ -141,6 +141,9 @@ namespace NetRevisionTool
 
 				case SchemeType.BaseEncoded:
 					return EncodeBase(time, data.Alphabet, data.IntervalSeconds, data.BaseYear, data.MinLength, data.UpperCase);
+
+				case SchemeType.Hours:
+					return EncodeHours(time, data.BaseYear, data.BaseMonth);
 			}
 
 			// Return match unprocessed (should not happen)
@@ -198,6 +201,14 @@ namespace NetRevisionTool
 				{
 					data.MinLength = int.Parse(match.Groups[6].Value);
 				}
+			}
+			else if ((match = Regex.Match(scheme, @"^\{?([abc]):h:([0-9]{4})-([0-9]{2})\}?$")).Success)
+			{
+				data.SchemeType = SchemeType.Hours;
+				sourceStr = match.Groups[1].Value;
+				data.BaseYear = int.Parse(match.Groups[2].Value);
+				data.BaseMonth = int.Parse(match.Groups[3].Value);
+				data.IntervalSeconds = 3600;
 			}
 
 			#region Legacy formats
@@ -371,7 +382,7 @@ namespace NetRevisionTool
 		/// <param name="value">The dotted-decimal-encoded time string to decode.</param>
 		/// <param name="intervalSeconds">The interval time in seconds.</param>
 		/// <param name="baseYear">The base year.</param>
-		/// <returns>The decoded time value.</returns>
+		/// <returns>The decoded time value in UTC.</returns>
 		public static DateTime DecodeDecimal(string value, int intervalSeconds, int baseYear)
 		{
 			// Split the two numbers
@@ -447,7 +458,7 @@ namespace NetRevisionTool
 		/// <param name="alphabet">The alphabet to use for the base-encoding</param>
 		/// <param name="intervalSeconds">The interval time in seconds.</param>
 		/// <param name="baseYear">The base year.</param>
-		/// <returns>The decoded time value.</returns>
+		/// <returns>The decoded time value in UTC.</returns>
 		public static DateTime DecodeBase(string value, char[] alphabet, int intervalSeconds, int baseYear)
 		{
 			bool negative = false;
@@ -480,6 +491,45 @@ namespace NetRevisionTool
 
 		#endregion Base-encoding
 
+		#region Hours encoding
+
+		/// <summary>
+		/// Encodes a time using hours encoding.
+		/// </summary>
+		/// <param name="time">The time to encode.</param>
+		/// <param name="baseYear">The base year.</param>
+		/// <param name="baseMonth">The base month.</param>
+		/// <returns>The encoded time string.</returns>
+		public static string EncodeHours(DateTimeOffset time, int baseYear, int baseMonth)
+		{
+			int intervalCount = (int) ((time.UtcDateTime - new DateTime(baseYear, baseMonth, 1)).TotalHours);
+			return intervalCount.ToString(CultureInfo.InvariantCulture);
+		}
+
+		/// <summary>
+		/// Decodes an hours-encoded time string.
+		/// </summary>
+		/// <param name="value">The hours-encoded time string to decode.</param>
+		/// <param name="baseYear">The base year.</param>
+		/// <param name="baseMonth">The base month.</param>
+		/// <returns>The decoded time value in UTC.</returns>
+		public static DateTime DecodeHours(string value, int baseYear, int baseMonth)
+		{
+			int intervalCount = int.Parse(value, CultureInfo.InvariantCulture);
+			if (intervalCount < 0 || intervalCount >= UInt16.MaxValue)
+				return DateTime.MinValue;
+			try
+			{
+				return new DateTime(baseYear, baseMonth, 1).AddHours(intervalCount);
+			}
+			catch
+			{
+				return DateTime.MinValue;
+			}
+		}
+
+		#endregion Hours encoding
+
 		#region Decoding and predicting
 
 		/// <summary>
@@ -502,6 +552,9 @@ namespace NetRevisionTool
 					break;
 				case SchemeType.BaseEncoded:
 					time = DecodeBase(value, data.Alphabet, data.IntervalSeconds, data.BaseYear);
+					break;
+				case SchemeType.Hours:
+					time = DecodeHours(value, data.BaseYear, data.BaseMonth);
 					break;
 			}
 			if (time == DateTime.MinValue)
@@ -543,6 +596,9 @@ namespace NetRevisionTool
 						break;
 					case SchemeType.BaseEncoded:
 						Console.WriteLine(EncodeBase(time, data.Alphabet, data.IntervalSeconds, data.BaseYear, data.MinLength, data.UpperCase));
+						break;
+					case SchemeType.Hours:
+						Console.WriteLine(EncodeHours(time, data.BaseYear, data.BaseMonth));
 						break;
 				}
 				time = time.AddSeconds(data.IntervalSeconds);
@@ -597,6 +653,11 @@ namespace NetRevisionTool
 		public int BaseYear;
 
 		/// <summary>
+		/// The base month. (Only for <see cref="SchemeType.Hours"/> type.)
+		/// </summary>
+		public int BaseMonth;
+
+		/// <summary>
 		/// The minimum length of the encoded value. (Only for <see cref="SchemeType.BaseEncoded"/> type.)
 		/// </summary>
 		public int MinLength;
@@ -631,7 +692,11 @@ namespace NetRevisionTool
 		/// <summary>
 		/// A base-encoded comparable string like "17yn".
 		/// </summary>
-		BaseEncoded
+		BaseEncoded,
+		/// <summary>
+		/// A decimal number (UInt16) of hours since a base year and month.
+		/// </summary>
+		Hours
 	}
 
 	#endregion Scheme data classes and enums

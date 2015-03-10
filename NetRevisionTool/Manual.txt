@@ -88,6 +88,9 @@ Number base can be from 2 to 36. The digits 0–9 and then letters a–z are use
 The number of passed intervals since the base year is encoded for the result (UTC). The minimum length padding generates fixed-length comparable strings. Set the length to a value that lasts for as long as you plan to use this versioning scheme (rec’d 30 years). Practical combinations are “16:1m” (6 chars), “28:20m” (4 chars), “36:10m” (4 chars).
 All letters are lower case. Use a capital {A:…}, {B:…} or {C:…} for upper case.
 
+♦Hours:♣ Generates a single number of hours passed since the given base year and month. This scheme begins with “h:” and then consists of two hyphen-separated values: base year, base month.
+For values up to 65535 this lasts for about 7 years.
+
 ♦Examples:♣
   {b:ymd-}             Local build date, like “2015-12-31”.
   {c:hm.}              Local commit time of day, like “23.59”.
@@ -98,6 +101,7 @@ All letters are lower case. Use a capital {A:…}, {B:…} or {C:…} for upper 
   {b:28:20m:2013:4}    Base-28 encoding of 20-minute intervals from build time since 2013, like “1xy9”.
   {bmin:2013:4}        Same as previous (short syntax from version 1.x).
   {B:28:20m:2013:4}    Base-28 encoding (upper case) of 20-minute intervals from build time since 2013, like “1XY9”.
+  {b:h:2015-02}        Hours encoding since February 2015, like “912”.
 
 ♦C# EXAMPLE♣
 
