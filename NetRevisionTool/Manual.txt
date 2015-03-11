@@ -50,12 +50,12 @@ The format defines how information about the commit or revision is formatted int
 
 {chash}               Full commit hash.
 {CHASH}               Full commit hash, in upper case.
-{chash:<length>}      Commit hash truncated to the specified length.
+{chash:<length>}      Commit hash truncated to the specified length. (Also for upper case)
 {revnum}              Revision number.
 {revnum-<offset>}     Revision number minus the offset. (Also available with +)
 {!}                   The “!” character if the working directory is modified, otherwise empty.
 {!:<string>}          The specified string if the working directory is modified, otherwise empty.
-{tz}                  Local time zone name.
+{tz}                  Local time zone offset like “+02:00”.
 {url}                 Repository URL.
 {cname}, {cmail}      Committer’s name or e-mail address.
 {aname}, {amail}      Author’s name or e-mail address.
@@ -64,7 +64,7 @@ The format defines how information about the commit or revision is formatted int
 
 ♦TIME SCHEMES♣
 
-Schemes convert a commit or build time to a compact string representation. They can be used to assign incrementing versions if no revision number is provided by the VCS. First, select from the build, commit or authoring time with {b:…}, {c:…} or {a:…}. This is followed by the scheme name. There are 3 types of schemes.
+Schemes convert a commit or build time to a compact string representation. They can be used to assign incrementing versions if no revision number is provided by the VCS. First, select from the build, commit or authoring time with {b:…}, {c:…} or {a:…}. This is followed by the scheme name. There are 4 types of schemes.
 
 ♦Readable date/time:♣ Produces a readable date or time string in several formats.
   ymd    Year, month, day, no separator.
@@ -90,8 +90,8 @@ Number base can be from 2 to 36. The digits 0–9 and then letters a–z are use
 The number of passed intervals since the base year is encoded for the result (UTC). The minimum length padding generates fixed-length comparable strings. Set the length to a value that lasts for as long as you plan to use this versioning scheme (rec’d 30 years). Practical combinations are “16:1m” (6 chars), “28:20m” (4 chars), “36:10m” (4 chars).
 All letters are lower case. Use a capital {A:…}, {B:…} or {C:…} for upper case.
 
-♦Hours:♣ Generates a single number of hours passed since the given base year and month. This scheme begins with “h:” and then consists of two hyphen-separated values: base year, base month.
-For values up to 65535 this lasts for about 7 years.
+♦Hours:♣ Generates a single number of hours passed since the given base year and month. This scheme begins with “h:” followed by two hyphen-separated values: base year, base month.
+For values up to 65535 this lasts over 7 years.
 
 ♦Examples:♣
   {b:ymd-}             Local build date, like “2015-12-31”.
@@ -103,7 +103,7 @@ For values up to 65535 this lasts for about 7 years.
   {b:28:20m:2013:4}    Base-28 encoding of 20-minute intervals from build time since 2013, like “1xy9”.
   {bmin:2013:4}        Same as previous (short syntax from version 1.x).
   {B:28:20m:2013:4}    Base-28 encoding (upper case) of 20-minute intervals from build time since 2013, like “1XY9”.
-  {b:h:2015-02}        Hours encoding since February 2015, like “912”.
+  {b:h:2015-02}        Hours encoding of UTC build time since February 2015, like “912”.
 
 ♦C# EXAMPLE♣
 
@@ -135,16 +135,16 @@ Set the path argument as "$(ProjectDir)" (with quotes) when calling as pre- or p
 
 Note: The PowerShell build framework (http://u10d.de/psbuild) integrates NetRevisionTool and always uses it in multi-project mode. Per-project invocations are automatically disabled through the environment variable %SuppressNetRevisionTool%. You might remove the pre/postbuild actions for solutions with many (like > 20) projects for better performance and let psbuild alone inject version IDs with one call per solution.
 
-♦SOURCE CODE♣
+♦SOURCE CODE LANGUAGES♣
 
 Only C# and VB.NET projects and source files can be patched. Other project types are ignored in solution files. Other source code language files are not found.
 
 ♦VCS PROVIDERS♣
 
-Git (for Windows) CLI must be installed using the setup for Windows or in one of %ProgramFiles*%\\Git* or in the PATH environment variable.
+Git (for Windows) CLI must be installed using the setup for Windows or in one of %ProgramFiles*%\\Git* or in the PATH environment variable. Git submodules are entirely untested!
 
-SVN CLI (svn and svnversion) must be available on the system. This is included in the “CLI” option of TortoiseSVN. Other options are considered (see source code). SVN externals are entirely untested!
+SVN CLI (svn and svnversion) must be available on the system. This is included in the “CLI” option of TortoiseSVN. Other locations are considered (see source code). SVN externals are entirely untested!
 
 ♦TROUBLESHOOTING♣
 
-Be sure not to have the AssemblyInfo file opened in the IDE while building the project, or the version modifications will be ignored by the compiler.
+Be sure not to have the AssemblyInfo file opened in Visual Studio while building the project from within VS, or the version modifications will be ignored by the compiler.
