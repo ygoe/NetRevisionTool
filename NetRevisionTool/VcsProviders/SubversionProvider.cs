@@ -112,10 +112,11 @@ namespace NetRevisionTool.VcsProviders
 				// 1100:1234     Mixed revisions 1100 to 1234
 				// 1234M         Revision 1234, modified
 				// 1100:1234MP   Mixed revisions 1100 to 1234, modified and partial
-				Match m = Regex.Match(line, @"^(?:[0-9]+:)?([0-9]+)");
+				Match m = Regex.Match(line, @"^([0-9]+:)?([0-9]+)");
 				if (m.Success)
 				{
-					data.RevisionNumber = int.Parse(m.Groups[1].Value);
+					data.IsMixed = m.Groups[1].Success;
+					data.RevisionNumber = int.Parse(m.Groups[2].Value);
 					break;
 				}
 			}

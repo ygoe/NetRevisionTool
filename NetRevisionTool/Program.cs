@@ -76,7 +76,8 @@ namespace NetRevisionTool
 			var formatOption = cmdLine.RegisterOption("format", 1);
 			var revisionOnlyOption = cmdLine.RegisterOption("revonly");
 			var requireVcsOption = cmdLine.RegisterOption("require", 1);
-			var rejectModifiedOption = cmdLine.RegisterOption("rejectmod");
+			var rejectModifiedOption = cmdLine.RegisterOption("rejectmod").Alias("rejectmodified");
+			var rejectMixedOption = cmdLine.RegisterOption("rejectmix").Alias("rejectmixed");
 			var multiProjectOption = cmdLine.RegisterOption("multi");
 			var scanRootOption = cmdLine.RegisterOption("root");
 			var decodeRevisionOption = cmdLine.RegisterOption("decode", 1);
@@ -171,10 +172,14 @@ namespace NetRevisionTool
 				}
 			}
 
-			// Check for reject modifications
+			// Check for reject modifications/mixed revisions
 			if (rejectModifiedOption.IsSet && data.IsModified)
 			{
 				throw new ConsoleException("The working directory contains uncommitted modifications.", ExitCodes.RejectModified);
+			}
+			if (rejectMixedOption.IsSet && data.IsMixed)
+			{
+				throw new ConsoleException("The working directory contains mixed revisions.", ExitCodes.RejectMixed);
 			}
 
 			// Determine revision ID format, in case we need one here

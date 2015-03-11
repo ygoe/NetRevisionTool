@@ -43,6 +43,11 @@ namespace NetRevisionTool
 		public bool IsModified { get; set; }
 
 		/// <summary>
+		/// Gets or sets a value indicating whether the working copy contains mixed revisions.
+		/// </summary>
+		public bool IsMixed { get; set; }
+
+		/// <summary>
 		/// Gets or sets the repository URL of the working directory.
 		/// </summary>
 		public string RepositoryUrl { get; set; }
@@ -104,6 +109,7 @@ namespace NetRevisionTool
 			Program.ShowDebugMessage("  CommitterEMail: " + CommitterEMail);
 			Program.ShowDebugMessage("  CommitterName: " + CommitterName);
 			Program.ShowDebugMessage("  CommitTime: " + CommitTime.ToString("yyyy-MM-dd HH:mm:ss K"));
+			Program.ShowDebugMessage("  IsMixed: " + IsMixed);
 			Program.ShowDebugMessage("  IsModified: " + IsModified);
 			Program.ShowDebugMessage("  RepositoryUrl: " + RepositoryUrl);
 			Program.ShowDebugMessage("  RevisionNumber: " + RevisionNumber);

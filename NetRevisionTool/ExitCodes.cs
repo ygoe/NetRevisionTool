@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace NetRevisionTool
 {
@@ -18,6 +15,7 @@ namespace NetRevisionTool
 		NoProjects = 8,
 		UnsupportedLanguage = 9,
 		NoNumericVersion = 10,
-		RevNumTooLarge = 11
+		RevNumTooLarge = 11,
+		RejectMixed = 12,
 	}
 }
