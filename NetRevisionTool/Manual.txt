@@ -23,6 +23,7 @@ The path parameter is used to locate the project’s AssemblyInfo files that sha
 /require <vcs>   Requires a working directory of the specified VCS.
 /rejectmod       Quits with an error return code if the working directory is modified.
 /multi           Multi-project mode: Processes all project subdirectories. The path parameter must be the .sln file.
+/root            Scan the working directory root for revision data instead of the specified path. (Can make a difference with SVN.)
 /decode <revId>  Decodes a formatted revision ID. Set /format or keep a format in the AssemblyInfo file.
 /predict         Predicts the next 20 revision IDs. Set /format or keep a format in the AssemblyInfo file.
 

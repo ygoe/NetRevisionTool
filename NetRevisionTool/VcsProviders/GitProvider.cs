@@ -45,7 +45,7 @@ namespace NetRevisionTool.VcsProviders
 			return true;
 		}
 
-		public bool CheckDirectory(string path)
+		public bool CheckDirectory(string path, out string rootPath)
 		{
 			// Scan directory tree upwards for the .git directory
 			Program.ShowDebugMessage("Checking directory tree for Git working directory…");
@@ -55,6 +55,7 @@ namespace NetRevisionTool.VcsProviders
 				if (Directory.Exists(Path.Combine(path, ".git")))
 				{
 					Program.ShowDebugMessage("  Found " + path, 1);
+					rootPath = path;
 					return true;
 				}
 				path = Path.GetDirectoryName(path);
@@ -63,6 +64,7 @@ namespace NetRevisionTool.VcsProviders
 
 			// Nothing found
 			Program.ShowDebugMessage("Not a Git working directory.", 2);
+			rootPath = null;
 			return false;
 		}
 

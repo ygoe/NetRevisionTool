@@ -78,6 +78,7 @@ namespace NetRevisionTool
 			var requireVcsOption = cmdLine.RegisterOption("require", 1);
 			var rejectModifiedOption = cmdLine.RegisterOption("rejectmod");
 			var multiProjectOption = cmdLine.RegisterOption("multi");
+			var scanRootOption = cmdLine.RegisterOption("root");
 			var decodeRevisionOption = cmdLine.RegisterOption("decode", 1);
 			var predictRevisionsOption = cmdLine.RegisterOption("predict");
 
@@ -157,7 +158,7 @@ namespace NetRevisionTool
 			}
 
 			// Analyse working directory
-			RevisionData data = ProcessDirectory(path, requireVcsOption.Value);
+			RevisionData data = ProcessDirectory(path, scanRootOption.IsSet, requireVcsOption.Value);
 			data.Normalize();
 
 			// Check for required VCS
@@ -274,7 +275,7 @@ namespace NetRevisionTool
 		/// Shows a debug message on the console if debug messages are enabled.
 		/// </summary>
 		/// <param name="text">The text to display.</param>
-		/// <param name="severity">0 (trace message), 1 (succes), 2 (warning), 3 (error), 4 (raw output).</param>
+		/// <param name="severity">0 (trace message), 1 (success), 2 (warning), 3 (error), 4 (raw output).</param>
 		public static void ShowDebugMessage(string text, int severity = 0)
 		{
 			if (showDebugOutput)
@@ -338,10 +339,11 @@ namespace NetRevisionTool
 		/// Processes the specified directory with a suitable VCS provider.
 		/// </summary>
 		/// <param name="path">The directory to process.</param>
+		/// <param name="scanRoot">true if the working directory root shall be scanned instead of <paramref name="path"/>.</param>
 		/// <param name="requiredVcs">The required VCS name, or null if any VCS is acceptable.</param>
 		/// <returns>Data about the revision. If no provider was able to process the directory,
 		///   dummy data is returned.</returns>
-		private static RevisionData ProcessDirectory(string path, string requiredVcs)
+		private static RevisionData ProcessDirectory(string path, bool scanRoot, string requiredVcs)
 		{
 			RevisionData data = null;
 
@@ -361,9 +363,15 @@ namespace NetRevisionTool
 				if (provider.CheckEnvironment())
 				{
 					ShowDebugMessage("Provider can be executed in this environment.", 1);
-					if (provider.CheckDirectory(path))
+					string rootPath;
+					if (provider.CheckDirectory(path, out rootPath))
 					{
 						ShowDebugMessage("Provider can process this directory.", 1);
+						if (scanRoot)
+						{
+							ShowDebugMessage("Root directory will be scanned.", 0);
+							path = rootPath;
+						}
 						data = provider.ProcessDirectory(path);
 						break;
 					}

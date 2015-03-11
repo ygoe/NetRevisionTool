@@ -27,8 +27,9 @@ namespace NetRevisionTool.VcsProviders
 		/// Checks whether the specified directory is a valid working directory for the VCS provider.
 		/// </summary>
 		/// <param name="path">The directory to check.</param>
+		/// <param name="rootPath">The detected working directory root path.</param>
 		/// <returns>true if the VCS provider can process the directory, otherwise false.</returns>
-		bool CheckDirectory(string path);
+		bool CheckDirectory(string path, out string rootPath);
 
 		/// <summary>
 		/// Processes the specified directory.

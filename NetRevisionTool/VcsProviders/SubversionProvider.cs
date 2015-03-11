@@ -55,7 +55,7 @@ namespace NetRevisionTool.VcsProviders
 			return true;
 		}
 
-		public bool CheckDirectory(string path)
+		public bool CheckDirectory(string path, out string rootPath)
 		{
 			// Scan directory tree upwards for the .svn directory
 			Program.ShowDebugMessage("Checking directory tree for Subversion working directory…");
@@ -65,6 +65,7 @@ namespace NetRevisionTool.VcsProviders
 				if (Directory.Exists(Path.Combine(path, ".svn")))
 				{
 					Program.ShowDebugMessage("  Found " + path, 1);
+					rootPath = path;
 					return true;
 				}
 				path = Path.GetDirectoryName(path);
@@ -73,6 +74,7 @@ namespace NetRevisionTool.VcsProviders
 
 			// Nothing found
 			Program.ShowDebugMessage("Not a Subversion working directory.", 2);
+			rootPath = null;
 			return false;
 		}
 
@@ -144,9 +146,9 @@ namespace NetRevisionTool.VcsProviders
 			}
 			data.IsModified = !string.IsNullOrEmpty(line);
 
-			Program.ShowDebugMessage("Executing: svn info");
+			Program.ShowDebugMessage("Executing: svn info --revision " + data.RevisionNumber);
 			Program.ShowDebugMessage("  WorkingDirectory: " + path);
-			psi = new ProcessStartInfo(svnExec, "info");
+			psi = new ProcessStartInfo(svnExec, "info --revision " + data.RevisionNumber);
 			psi.WorkingDirectory = path;
 			psi.RedirectStandardOutput = true;
 			psi.UseShellExecute = false;
