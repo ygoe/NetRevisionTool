@@ -141,9 +141,9 @@ Only C# and VB.NET projects and source files can be patched. Other project types
 
 ♦VCS PROVIDERS♣
 
-Git (for Windows) CLI must be installed using the setup for Windows or in one of %ProgramFiles*%\\Git* or in the PATH environment variable. Git submodules are entirely untested!
+Git (for Windows) CLI must be installed using the setup for Windows or in one of %ProgramFiles*%\\Git* or in the PATH environment variable.
 
-SVN CLI (svn and svnversion) must be available on the system. This is included in the “CLI” option of TortoiseSVN. Other locations are considered (see source code). SVN externals are entirely untested!
+SVN CLI (svn and svnversion) must be available on the system. This is included in the “CLI” option of TortoiseSVN. Other locations are considered (see source code).
 
 ♦TROUBLESHOOTING♣
 

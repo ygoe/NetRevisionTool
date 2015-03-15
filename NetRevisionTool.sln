@@ -10,11 +10,16 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SvnRevisionTool.NET40", "SvnRevisionTool\SvnRevisionTool.NET40.csproj", "{27471610-51BF-426A-A54A-31095161C925}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetRevisionTool", "NetRevisionTool\NetRevisionTool.csproj", "{F7EBD757-D403-4FDC-ACCA-AF9C70F77F5E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{484BB6B5-0BF3-488E-B404-FDC1C07F73CB} = {484BB6B5-0BF3-488E-B404-FDC1C07F73CB}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PackedStarter", "PackedStarter\PackedStarter.csproj", "{8C332466-AC82-4B05-9243-35E274605413}"
 	ProjectSection(ProjectDependencies) = postProject
 		{F7EBD757-D403-4FDC-ACCA-AF9C70F77F5E} = {F7EBD757-D403-4FDC-ACCA-AF9C70F77F5E}
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "gzip", "gzip\gzip.csproj", "{484BB6B5-0BF3-488E-B404-FDC1C07F73CB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,6 +41,10 @@ Global
 		{F7EBD757-D403-4FDC-ACCA-AF9C70F77F5E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8C332466-AC82-4B05-9243-35E274605413}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8C332466-AC82-4B05-9243-35E274605413}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{484BB6B5-0BF3-488E-B404-FDC1C07F73CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{484BB6B5-0BF3-488E-B404-FDC1C07F73CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{484BB6B5-0BF3-488E-B404-FDC1C07F73CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{484BB6B5-0BF3-488E-B404-FDC1C07F73CB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
