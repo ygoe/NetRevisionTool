@@ -310,6 +310,16 @@ namespace NetRevisionTool
 			{
 				if (revNum == 0)
 				{
+					// No revision number available, try to use the format as a number
+					string revisionId = rf.Resolve(revisionFormat);
+					if (int.TryParse(revisionId, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out revNum))
+					{
+						Program.ShowDebugMessage("Using revision number " + revNum + " for /revonly from format.", 0);
+					}
+				}
+				if (revNum == 0)
+				{
+					// Still nothing useful available
 					Program.ShowDebugMessage("Revision number is 0. Did you really mean to use /revonly?", 2);
 				}
 				if (revNum > UInt16.MaxValue)

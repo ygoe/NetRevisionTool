@@ -121,6 +121,12 @@ When using /revonly:
 [assembly: AssemblyVersion("1.2.0.345")]
 [assembly: AssemblyFileVersion("1.3.0.345")]
 
+The option /revonly can be used without a VCS by specifying a format that resolves to an integer number based on the current time (build time). This format must be passed on the command line and only contain a single number. The AssemblyInformationalVersion attribute should not be present because such a format would not be suitable for it and it takes precedence if it exists.
+
+/patch /revonly /format "{b:h:2015-04}"
+
+When using the AssemblyInformationalVersion attribute, it must contain the full version format like "2.0.1.{b:h:2015-04}" and the /revonly and /format parameters must not be used.
+
 ♦BATCH EXAMPLE♣
 
 Write to a file outside the working directory to avoid false modify.
