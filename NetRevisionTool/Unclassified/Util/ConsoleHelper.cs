@@ -88,44 +88,10 @@ namespace Unclassified.Util
 		[DllImport("kernel32.dll", SetLastError = true)]
 		private static extern IntPtr GetStdHandle(StdHandle nStdHandle);
 
-		/// <summary>
-		/// Retrieves the window handle used by the console associated with the calling process.
-		/// </summary>
-		/// <returns></returns>
-		[DllImport("kernel32.dll", SetLastError = true)]
-		private static extern IntPtr GetConsoleWindow();
-
-		/// <summary>
-		/// Determines the visibility state of the specified window.
-		/// </summary>
-		/// <param name="hWnd">A handle to the window to be tested.</param>
-		/// <returns></returns>
-		[DllImport("user32.dll")]
-		private static extern bool IsWindowVisible(IntPtr hWnd);
-
 		#endregion Native interop
-
-		/// <summary>
-		/// Gets a value indicating whether the current application has an interactive console and
-		/// is able to interact with the user through it.
-		/// </summary>
-		public static bool IsInteractiveAndVisible
-		{
-			get
-			{
-				IntPtr consoleWnd = GetConsoleWindow();
-				return Environment.UserInteractive &&
-					consoleWnd != IntPtr.Zero &&
-					IsWindowVisible(consoleWnd) &&
-					!IsInputRedirected &&
-					!IsOutputRedirected &&
-					!IsErrorRedirected;
-			}
-		}
 
 		private static bool? isInputRedirected;
 		private static bool? isOutputRedirected;
-		private static bool? isErrorRedirected;
 
 		/// <summary>
 		/// Gets a value that indicates whether input has been redirected from the standard input
@@ -162,25 +128,6 @@ namespace Unclassified.Util
 					isOutputRedirected = GetFileType(GetStdHandle(StdHandle.Output)) != FileType.FileTypeChar;
 				}
 				return isOutputRedirected == true;
-			}
-		}
-
-		/// <summary>
-		/// Gets a value that indicates whether the error output stream has been redirected from the
-		/// standard error stream.
-		/// </summary>
-		/// <remarks>
-		/// The value is cached after the first access.
-		/// </remarks>
-		public static bool IsErrorRedirected
-		{
-			get
-			{
-				if (isErrorRedirected == null)
-				{
-					isErrorRedirected = GetFileType(GetStdHandle(StdHandle.Error)) != FileType.FileTypeChar;
-				}
-				return isErrorRedirected == true;
 			}
 		}
 
@@ -231,78 +178,6 @@ namespace Unclassified.Util
 		#region Color output
 
 		/// <summary>
-		/// Writes a text in a different color. The previous color is restored.
-		/// </summary>
-		/// <param name="text"></param>
-		/// <param name="color"></param>
-		public static void Write(string text, ConsoleColor color)
-		{
-			var oldColor = Console.ForegroundColor;
-			Console.ForegroundColor = color;
-			Console.Write(text);
-			Console.ForegroundColor = oldColor;
-		}
-
-		/// <summary>
-		/// Writes a text in a different color. The previous color is restored.
-		/// </summary>
-		/// <param name="text"></param>
-		/// <param name="textColor"></param>
-		/// <param name="backColor"></param>
-		public static void Write(string text, ConsoleColor textColor, ConsoleColor backColor)
-		{
-			var oldTextColor = Console.ForegroundColor;
-			var oldBackColor = Console.BackgroundColor;
-			Console.ForegroundColor = textColor;
-			Console.BackgroundColor = backColor;
-			Console.Write(text);
-			Console.ForegroundColor = oldTextColor;
-			Console.BackgroundColor = oldBackColor;
-		}
-
-		/// <summary>
-		/// Writes a text in a different color. The previous color is restored.
-		/// </summary>
-		/// <param name="text"></param>
-		/// <param name="color"></param>
-		public static void WriteLine(string text, ConsoleColor color)
-		{
-			var oldColor = Console.ForegroundColor;
-			Console.ForegroundColor = color;
-			Console.WriteLine(text);
-			Console.ForegroundColor = oldColor;
-		}
-
-		/// <summary>
-		/// Writes a text in a different color. The previous color is restored.
-		/// </summary>
-		/// <param name="text"></param>
-		/// <param name="textColor"></param>
-		/// <param name="backColor"></param>
-		public static void WriteLine(string text, ConsoleColor textColor, ConsoleColor backColor)
-		{
-			var oldTextColor = Console.ForegroundColor;
-			var oldBackColor = Console.BackgroundColor;
-			Console.ForegroundColor = textColor;
-			Console.BackgroundColor = backColor;
-			Console.WriteLine(text);
-			Console.ForegroundColor = oldTextColor;
-			Console.BackgroundColor = oldBackColor;
-		}
-
-		/// <summary>
-		/// Writes a text with custom format control characters. The previous color is restored.
-		/// </summary>
-		/// <param name="text"></param>
-		/// <param name="formatter">A function that can set the console color depending on the input
-		///   character. Return false to hide the character.</param>
-		public static void WriteLineFormatted(string text, Func<char, bool> formatter)
-		{
-			WriteFormatted(text, formatter);
-			Console.WriteLine();
-		}
-
-		/// <summary>
 		/// Writes a text with custom format control characters. The previous color is restored.
 		/// </summary>
 		/// <param name="text"></param>
@@ -324,159 +199,6 @@ namespace Unclassified.Util
 		}
 
 		#endregion Color output
-
-		#region Progress bar
-
-		private static string progressTitle;
-		private static int progressValue;
-		private static int progressTotal;
-		private static bool progressHasWarning;
-		private static bool progressHasError;
-
-		/// <summary>
-		/// Gets or sets the progress title, and updates the displayed progress bar accordingly.
-		/// </summary>
-		/// <remarks>
-		/// A progress bar is only displayed if <see cref="ProgressTotal"/> is greater than zero.
-		/// </remarks>
-		public static string ProgressTitle
-		{
-			get { return progressTitle; }
-			set
-			{
-				if (value != progressTitle)
-				{
-					progressTitle = value;
-					WriteProgress();
-				}
-			}
-		}
-
-		/// <summary>
-		/// Gets or sets the current value of the progress, and updates the displayed progress bar
-		/// accordingly.
-		/// </summary>
-		/// <remarks>
-		/// A progress bar is only displayed if <see cref="ProgressTotal"/> is greater than zero.
-		/// </remarks>
-		public static int ProgressValue
-		{
-			get { return progressValue; }
-			set
-			{
-				if (value != progressValue)
-				{
-					progressValue = value;
-					WriteProgress();
-				}
-			}
-		}
-
-		/// <summary>
-		/// Gets or sets the total value of the progress, and updates the displayed progress bar
-		/// accordingly. Setting a value of zero or less clears the progress bar and resets its
-		/// state.
-		/// </summary>
-		/// <remarks>
-		/// A progress bar is only displayed if <see cref="ProgressTotal"/> is greater than zero.
-		/// </remarks>
-		public static int ProgressTotal
-		{
-			get { return progressTotal; }
-			set
-			{
-				if (value != progressTotal)
-				{
-					progressTotal = value;
-					WriteProgress();
-					if (progressTotal <= 0)
-					{
-						// Reset progress
-						progressValue = 0;
-						progressHasWarning = false;
-						progressHasError = false;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// Gets or sets a value indicating whether a warning occured during processing, and
-		/// updates the displayed progress bar accordingly.
-		/// </summary>
-		/// <remarks>
-		/// A progress bar is only displayed if <see cref="ProgressTotal"/> is greater than zero.
-		/// </remarks>
-		public static bool ProgressHasWarning
-		{
-			get { return progressHasWarning; }
-			set
-			{
-				if (value != progressHasWarning)
-				{
-					progressHasWarning = value;
-					WriteProgress();
-				}
-			}
-		}
-
-		/// <summary>
-		/// Gets or sets a value indicating whether an error occured during processing, and updates
-		/// the displayed progress bar accordingly.
-		/// </summary>
-		/// <remarks>
-		/// A progress bar is only displayed if <see cref="ProgressTotal"/> is greater than zero.
-		/// </remarks>
-		public static bool ProgressHasError
-		{
-			get { return progressHasError; }
-			set
-			{
-				if (value != progressHasError)
-				{
-					progressHasError = value;
-					WriteProgress();
-				}
-			}
-		}
-
-		/// <summary>
-		/// Writes the progress info in the current line, replacing the current line.
-		/// </summary>
-		private static void WriteProgress()
-		{
-			// Replace the current line with the new progress
-			ClearLine();
-			if (progressTotal > 0)
-			{
-				// Range checking
-				int value = progressValue;
-				if (value < 0) value = 0;
-				if (value > progressTotal) value = progressTotal;
-
-				Console.Write(progressTitle + " " + value.ToString().PadLeft(progressTotal.ToString().Length) + "/" + progressTotal + " ");
-
-				// Use almost the entire remaining visible space for the progress bar
-				int graphLength = 80;
-				if (!IsOutputRedirected)
-				{
-					graphLength = Console.WindowWidth - Console.CursorLeft - 4;
-				}
-				int graphPart = progressTotal > 0 ? (int) Math.Round((double) value / progressTotal * graphLength) : 0;
-
-				ConsoleColor graphColor;
-				if (progressHasError)
-					graphColor = ConsoleColor.DarkRed;
-				else if (progressHasWarning)
-					graphColor = ConsoleColor.DarkYellow;
-				else
-					graphColor = ConsoleColor.DarkGreen;
-				Write(new string('█', graphPart), graphColor);
-				Write(new string('░', graphLength - graphPart), ConsoleColor.DarkGray);
-			}
-		}
-
-		#endregion Progress bar
 
 		#region Line wrapping
 

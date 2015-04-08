@@ -8,10 +8,10 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCompany("unclassified software development")]
 
 // Assembly identity version. Must be a dotted-numeric version.
-[assembly: AssemblyVersion("2.2")]
+[assembly: AssemblyVersion("2.2.1")]
 
 // Repeat for Win32 file version resource because the assembly version is expanded to 4 parts.
-[assembly: AssemblyFileVersion("2.2")]
+[assembly: AssemblyFileVersion("2.2.1")]
 
 #if DEBUG
 [assembly: AssemblyConfiguration("Debug")]
@@ -22,6 +22,9 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // Version history:
+//
+// 2.2.1
+// * Removed unused shared code to reduce executable file size
 //
 // 2.2 (2015-04-02)
 // * /revonly can be used with a revision format that produces an integer number
