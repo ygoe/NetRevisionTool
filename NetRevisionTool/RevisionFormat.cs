@@ -86,7 +86,12 @@ namespace NetRevisionTool
 			format = Regex.Replace(format, @"\{[AaBbCc]:.+?\}", FormatTimeScheme);
 
 			// Partial legacy format compatibility
-			format = format.Replace("{commit}", RevisionData.RevisionNumber > 0 ? RevisionData.RevisionNumber.ToString() : RevisionData.CommitHash);
+			string commitString = RevisionData.CommitHash;
+			if (string.IsNullOrEmpty(commitString))
+			{
+				commitString = RevisionData.RevisionNumber.ToString();
+			}
+			format = format.Replace("{commit}", commitString);
 			format = Regex.Replace(format, @"\{commit:([0-9]+)\}", m => SafeSubstring(RevisionData.CommitHash, int.Parse(m.Groups[1].Value)));
 			format = Regex.Replace(format, @"\{(?:(?:[Xx]|[Bb](?:36)?|d2?)min):.+?\}", FormatTimeScheme);
 

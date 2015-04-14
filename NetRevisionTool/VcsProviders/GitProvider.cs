@@ -170,6 +170,37 @@ namespace NetRevisionTool.VcsProviders
 					p.Kill();
 				}
 				data.IsModified = !string.IsNullOrEmpty(line);
+
+				// Query the linear revision number of the current branch (first parent)
+				Program.ShowDebugMessage("Executing: git rev-list --first-parent --count HEAD");
+				Program.ShowDebugMessage("  WorkingDirectory: " + path);
+				psi = new ProcessStartInfo(gitExec, "rev-list --first-parent --count HEAD");
+				psi.WorkingDirectory = path;
+				psi.RedirectStandardOutput = true;
+				psi.StandardOutputEncoding = Encoding.Default;
+				psi.UseShellExecute = false;
+				p = Process.Start(psi);
+				line = null;
+				if (!p.StandardOutput.EndOfStream)
+				{
+					line = p.StandardOutput.ReadLine();
+					Program.ShowDebugMessage(line, 4);
+					int revNum;
+					if (int.TryParse(line.Trim(), out revNum))
+					{
+						data.RevisionNumber = revNum;
+					}
+					else
+					{
+						Program.ShowDebugMessage("Revision count could not be parsed", 2);
+					}
+				}
+				p.StandardOutput.ReadToEnd();   // Kindly eat up the remaining output
+				if (!p.WaitForExit(1000))
+				{
+					p.Kill();
+				}
+				data.IsModified = !string.IsNullOrEmpty(line);
 			}
 			return data;
 		}

@@ -8,10 +8,10 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCompany("unclassified software development")]
 
 // Assembly identity version. Must be a dotted-numeric version.
-[assembly: AssemblyVersion("2.2.1")]
+[assembly: AssemblyVersion("2.3")]
 
 // Repeat for Win32 file version resource because the assembly version is expanded to 4 parts.
-[assembly: AssemblyFileVersion("2.2.1")]
+[assembly: AssemblyFileVersion("2.3")]
 
 #if DEBUG
 [assembly: AssemblyConfiguration("Debug")]
@@ -23,7 +23,8 @@ using System.Runtime.InteropServices;
 
 // Version history:
 //
-// 2.2.1
+// 2.3 (2015-04-14)
+// * Revision number generation for Git repositories using --first-parent
 // * Removed unused shared code to reduce executable file size
 //
 // 2.2 (2015-04-02)
