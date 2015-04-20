@@ -169,7 +169,6 @@ namespace NetRevisionTool.VcsProviders
 				{
 					p.Kill();
 				}
-				data.IsModified = !string.IsNullOrEmpty(line);
 
 				// Query the linear revision number of the current branch (first parent)
 				Program.ShowDebugMessage("Executing: git rev-list --first-parent --count HEAD");
@@ -200,7 +199,6 @@ namespace NetRevisionTool.VcsProviders
 				{
 					p.Kill();
 				}
-				data.IsModified = !string.IsNullOrEmpty(line);
 			}
 			return data;
 		}
