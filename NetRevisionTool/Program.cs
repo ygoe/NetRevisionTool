@@ -56,6 +56,11 @@ namespace NetRevisionTool
 			{
 				return ConsoleHelper.ExitError(ex.Message, (int) ex.ExitCode);
 			}
+			catch (Exception ex)
+			{
+				ShowDebugMessage("Exception details:\n" + ex.ToString(), 3);
+				return ConsoleHelper.ExitError("Unhandled exception: " + ex.Message + " (" + ex.GetType().Name + ")", 100);
+			}
 		}
 
 		/// <summary>
