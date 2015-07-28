@@ -23,8 +23,9 @@ using System.Runtime.InteropServices;
 
 // Version history:
 //
-// 2.3.2 (unreleased)
+// 2.3.2 (2015-07-28)
 // * Added global exception handler
+// * Retrying to write file on IOException (observed if VS2015 is still open with the project)
 //
 // 2.3.1 (2015-04-21)
 // * Fix: All Git directories are considered modified

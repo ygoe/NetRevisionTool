@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace NetRevisionTool
 {
@@ -269,11 +270,26 @@ namespace NetRevisionTool
 		/// </summary>
 		private void WriteFileLines()
 		{
-			using (StreamWriter sw = new StreamWriter(fileName, false, Encoding.UTF8))
+			int retryCounter = 20;
+			while (true)
 			{
-				foreach (string line in lines)
+				try
 				{
-					sw.WriteLine(line);
+					using (StreamWriter sw = new StreamWriter(fileName, false, Encoding.UTF8))
+					{
+						foreach (string line in lines)
+						{
+							sw.WriteLine(line);
+						}
+					}
+					break;
+				}
+				catch (IOException)
+				{
+					retryCounter--;
+					if (retryCounter < 0) throw;
+					Program.ShowDebugMessage("IOException when writing file, waiting for retry...", 3);
+					Thread.Sleep(100);
 				}
 			}
 		}
