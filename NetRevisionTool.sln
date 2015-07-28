@@ -1,6 +1,8 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitRevisionTool.NET20", "GitRevisionTool\GitRevisionTool.NET20.csproj", "{5404050F-7116-4709-8C72-98FF18746588}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SvnRevisionTool.NET20", "SvnRevisionTool\SvnRevisionTool.NET20.csproj", "{12E529BA-D353-41D6-8061-B2AA007B5A52}"
