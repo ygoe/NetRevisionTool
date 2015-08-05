@@ -124,7 +124,32 @@ namespace NetRevisionTool.VcsProviders
 			{
 				p.Kill();
 			}
+            //Try to get tag info for current commit
+            if (string.IsNullOrEmpty(data.Tag))
+            {
+                Program.ShowDebugMessage("Executing: git describe");
+                Program.ShowDebugMessage("  WorkingDirectory: " + path);
+                psi = new ProcessStartInfo(gitExec, "describe");
+                psi.WorkingDirectory = path;
+                psi.RedirectStandardOutput = true;
+                psi.StandardOutputEncoding = Encoding.Default;
+                psi.UseShellExecute = false;
+                p = Process.Start(psi);
+                line = null;
+                while (!p.StandardOutput.EndOfStream)
+                {
+                    line = p.StandardOutput.ReadLine();
+                    Program.ShowDebugMessage(line, 4);
 
+                    if (!string.IsNullOrEmpty(line))
+                        data.Tag = line;
+                }
+                if (!p.WaitForExit(1000))
+                {
+                    p.Kill();
+                }
+                data.IsModified = !string.IsNullOrEmpty(line);
+            }
 			if (!string.IsNullOrEmpty(data.CommitHash))
 			{
 				// Query the working directory state

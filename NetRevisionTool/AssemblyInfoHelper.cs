@@ -312,7 +312,7 @@ namespace NetRevisionTool
 			if (simpleAttributes && !revOnly)
 			{
 				string revisionId = rf.Resolve(revisionFormat);
-				truncVersion = Regex.Replace(revisionId, @"[^0-9.].*$", "");
+				truncVersion = Regex.Replace(revisionId, @"[^0-9.].*$", "").TrimEnd('.');
 				if (!truncVersion.Contains("."))
 					throw new ConsoleException("Revision ID cannot be truncated to dotted-numeric: " + revisionId, ExitCodes.NoNumericVersion);
 				Version version;
