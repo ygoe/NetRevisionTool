@@ -260,14 +260,14 @@ namespace NetRevisionTool.VcsProviders
 					object loc = key.GetValue("Directory");
 					if (loc is string)
 					{
-						svn = Path.Combine((string) loc, Path.Combine(@"bin", svnExeName));
+						svn = Path.Combine((string)loc, Path.Combine(@"bin", svnExeName));
 						if (!File.Exists(svn))
 						{
 							svn = null;
 						}
 						else
 						{
-							Program.ShowDebugMessage("Found " + svnExeName + " in \"" + (string) loc + "\" via HKLM\\" + keyPath + "\\Directory", 1);
+							Program.ShowDebugMessage("Found " + svnExeName + " in \"" + (string)loc + "\" via HKLM\\" + keyPath + "\\Directory", 1);
 						}
 					}
 				}
@@ -283,14 +283,14 @@ namespace NetRevisionTool.VcsProviders
 					object loc = key.GetValue("UninstallString");
 					if (loc is string)
 					{
-						svn = Path.Combine(Path.GetDirectoryName((string) loc), svnExeName);
+						svn = Path.Combine(Path.GetDirectoryName((string)loc), svnExeName);
 						if (!File.Exists(svn))
 						{
 							svn = null;
 						}
 						else
 						{
-							Program.ShowDebugMessage("Found " + svnExeName + " in \"" + (string) loc + "\" via HKLM\\" + keyPath + "\\UninstallString", 1);
+							Program.ShowDebugMessage("Found " + svnExeName + " in \"" + (string)loc + "\" via HKLM\\" + keyPath + "\\UninstallString", 1);
 						}
 					}
 				}
@@ -304,14 +304,14 @@ namespace NetRevisionTool.VcsProviders
 					object loc = key.GetValue("InstallLocation");
 					if (loc is string)
 					{
-						svn = Path.Combine((string) loc, svnExeName);
+						svn = Path.Combine((string)loc, svnExeName);
 						if (!File.Exists(svn))
 						{
 							svn = null;
 						}
 						else
 						{
-							Program.ShowDebugMessage("Found " + svnExeName + " in \"" + (string) loc + "\" via HKLM\\" + keyPath + "\\InstallLocation", 1);
+							Program.ShowDebugMessage("Found " + svnExeName + " in \"" + (string)loc + "\" via HKLM\\" + keyPath + "\\InstallLocation", 1);
 						}
 					}
 				}
@@ -327,14 +327,14 @@ namespace NetRevisionTool.VcsProviders
 					object loc = key.GetValue("UninstallString");
 					if (loc is string)
 					{
-						svn = Path.Combine(Path.GetDirectoryName((string) loc), svnExeName);
+						svn = Path.Combine(Path.GetDirectoryName((string)loc), svnExeName);
 						if (!File.Exists(svn))
 						{
 							svn = null;
 						}
 						else
 						{
-							Program.ShowDebugMessage("Found " + svnExeName + " in \"" + (string) loc + "\" via HKLM\\" + keyPath + "\\UninstallString", 1);
+							Program.ShowDebugMessage("Found " + svnExeName + " in \"" + (string)loc + "\" via HKLM\\" + keyPath + "\\UninstallString", 1);
 						}
 					}
 				}
@@ -348,14 +348,14 @@ namespace NetRevisionTool.VcsProviders
 					object loc = key.GetValue("InstallLocation");
 					if (loc is string)
 					{
-						svn = Path.Combine((string) loc, svnExeName);
+						svn = Path.Combine((string)loc, svnExeName);
 						if (!File.Exists(svn))
 						{
 							svn = null;
 						}
 						else
 						{
-							Program.ShowDebugMessage("Found " + svnExeName + " in \"" + (string) loc + "\" via HKLM\\" + keyPath + "\\InstallLocation", 1);
+							Program.ShowDebugMessage("Found " + svnExeName + " in \"" + (string)loc + "\" via HKLM\\" + keyPath + "\\InstallLocation", 1);
 						}
 					}
 				}

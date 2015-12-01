@@ -371,7 +371,7 @@ namespace Unclassified.Util
 				182,   // Application 1
 				183    // Application 2
 			};
-			return !ignore.Contains((int) key);
+			return !ignore.Contains((int)key);
 		}
 
 		/// <summary>

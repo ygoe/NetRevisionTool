@@ -238,21 +238,21 @@ namespace NetRevisionTool.VcsProviders
 			// Read registry uninstaller key
 			if (git == null)
 			{
-				keyPath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Git_is1";
+				keyPath = @"Software\Microsoft\Windows\CurrentVersion\Uninstall\Git_is1";
 				key = Registry.LocalMachine.OpenSubKey(keyPath);
 				if (key != null)
 				{
 					object loc = key.GetValue("InstallLocation");
 					if (loc is string)
 					{
-						git = Path.Combine((string) loc, Path.Combine("bin", gitExeName));
+						git = Path.Combine((string)loc, Path.Combine("bin", gitExeName));
 						if (!File.Exists(git))
 						{
 							git = null;
 						}
 						else
 						{
-							Program.ShowDebugMessage("Found " + gitExeName + " in \"" + (string) loc + "\" via HKLM\\" + keyPath + "\\InstallLocation", 1);
+							Program.ShowDebugMessage("Found " + gitExeName + " in \"" + (string)loc + "\" via HKLM\\" + keyPath + "\\InstallLocation", 1);
 						}
 					}
 				}
@@ -261,21 +261,44 @@ namespace NetRevisionTool.VcsProviders
 			// Try 64-bit registry key
 			if (git == null && Is64Bit)
 			{
-				keyPath = @"SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Git_is1";
+				keyPath = @"Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Git_is1";
 				key = Registry.LocalMachine.OpenSubKey(keyPath);
 				if (key != null)
 				{
 					object loc = key.GetValue("InstallLocation");
 					if (loc is string)
 					{
-						git = Path.Combine((string) loc, Path.Combine("bin", gitExeName));
+						git = Path.Combine((string)loc, Path.Combine("bin", gitExeName));
 						if (!File.Exists(git))
 						{
 							git = null;
 						}
 						else
 						{
-							Program.ShowDebugMessage("Found " + gitExeName + " in \"" + (string) loc + "\" via HKLM\\" + keyPath + "\\InstallLocation", 1);
+							Program.ShowDebugMessage("Found " + gitExeName + " in \"" + (string)loc + "\" via HKLM\\" + keyPath + "\\InstallLocation", 1);
+						}
+					}
+				}
+			}
+
+			// Try user profile key (since Git for Windows ~2.6)
+			if (git == null)
+			{
+				keyPath = @"Software\Microsoft\Windows\CurrentVersion\Uninstall\Git_is1";
+				key = Registry.CurrentUser.OpenSubKey(keyPath);
+				if (key != null)
+				{
+					object loc = key.GetValue("InstallLocation");
+					if (loc is string)
+					{
+						git = Path.Combine((string)loc, Path.Combine("bin", gitExeName));
+						if (!File.Exists(git))
+						{
+							git = null;
+						}
+						else
+						{
+							Program.ShowDebugMessage("Found " + gitExeName + " in \"" + (string)loc + "\" via HKCU\\" + keyPath + "\\InstallLocation", 1);
 						}
 					}
 				}

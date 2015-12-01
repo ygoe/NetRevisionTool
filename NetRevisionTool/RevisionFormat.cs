@@ -374,9 +374,9 @@ namespace NetRevisionTool
 			}
 
 			long dayTicks = TimeSpan.FromDays(1).Ticks;
-			int days = (int) (ticks / dayTicks);
-			long ticks2 = (long) (ticks % dayTicks);
-			int intervalCount = (int) TimeSpan.FromTicks(ticks2).TotalSeconds / intervalSeconds;
+			int days = (int)(ticks / dayTicks);
+			long ticks2 = (long)(ticks % dayTicks);
+			int intervalCount = (int)TimeSpan.FromTicks(ticks2).TotalSeconds / intervalSeconds;
 
 			return (negative ? "-" : "") + days + "." + intervalCount;
 		}
@@ -403,7 +403,7 @@ namespace NetRevisionTool
 				return DateTime.MinValue;
 			if (days < 0 || days >= UInt16.MaxValue)
 				return DateTime.MinValue;
-			int maxIntervalCount = (int) TimeSpan.FromDays(1).TotalSeconds / intervalSeconds;
+			int maxIntervalCount = (int)TimeSpan.FromDays(1).TotalSeconds / intervalSeconds;
 			if (intervalCount < 0 || intervalCount >= maxIntervalCount)
 				return DateTime.MinValue;
 
@@ -435,7 +435,7 @@ namespace NetRevisionTool
 		/// <returns>The encoded time string.</returns>
 		public static string EncodeBase(DateTimeOffset time, char[] alphabet, int intervalSeconds, int baseYear, int minLength = 1, bool upperCase = false)
 		{
-			int intervalCount = (int) ((time.UtcDateTime - new DateTime(baseYear, 1, 1)).TotalSeconds / intervalSeconds);
+			int intervalCount = (int)((time.UtcDateTime - new DateTime(baseYear, 1, 1)).TotalSeconds / intervalSeconds);
 			bool negative = false;
 			if (intervalCount < 0)
 			{
@@ -507,7 +507,7 @@ namespace NetRevisionTool
 		/// <returns>The encoded time string.</returns>
 		public static string EncodeHours(DateTimeOffset time, int baseYear, int baseMonth)
 		{
-			int intervalCount = (int) ((time.UtcDateTime - new DateTime(baseYear, baseMonth, 1)).TotalHours);
+			int intervalCount = (int)((time.UtcDateTime - new DateTime(baseYear, baseMonth, 1)).TotalHours);
 			return intervalCount.ToString(CultureInfo.InvariantCulture);
 		}
 

@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace NetRevisionTool.VcsProviders
 {
@@ -11,7 +9,7 @@ namespace NetRevisionTool.VcsProviders
 		/// Gets the name of the provider. This name can be compared with the /require option.
 		/// </summary>
 		string Name { get; }
-		
+
 		/// <summary>
 		/// Checks whether the environment requirements are met for the VCS provider to run.
 		/// </summary>

@@ -50,11 +50,11 @@ namespace NetRevisionTool
 				MainWrapper();
 
 				ConsoleHelper.WaitIfDebug();
-				return (int) ExitCodes.NoError;
+				return (int)ExitCodes.NoError;
 			}
 			catch (ConsoleException ex)
 			{
-				return ConsoleHelper.ExitError(ex.Message, (int) ex.ExitCode);
+				return ConsoleHelper.ExitError(ex.Message, (int)ex.ExitCode);
 			}
 			catch (Exception ex)
 			{
@@ -471,7 +471,7 @@ namespace NetRevisionTool
 				if (!type.IsInterface &&
 					typeof(IVcsProvider).IsAssignableFrom(type))
 				{
-					IVcsProvider provider = (IVcsProvider) Activator.CreateInstance(type);
+					IVcsProvider provider = (IVcsProvider)Activator.CreateInstance(type);
 					providers.Add(provider);
 				}
 			}
@@ -523,22 +523,22 @@ namespace NetRevisionTool
 			object[] customAttributes = Assembly.GetEntryAssembly().GetCustomAttributes(typeof(AssemblyProductAttribute), false);
 			if (customAttributes != null && customAttributes.Length > 0)
 			{
-				productName = ((AssemblyProductAttribute) customAttributes[0]).Product;
+				productName = ((AssemblyProductAttribute)customAttributes[0]).Product;
 			}
 			customAttributes = Assembly.GetEntryAssembly().GetCustomAttributes(typeof(AssemblyFileVersionAttribute), false);
 			if (customAttributes != null && customAttributes.Length > 0)
 			{
-				productVersion = ((AssemblyFileVersionAttribute) customAttributes[0]).Version;
+				productVersion = ((AssemblyFileVersionAttribute)customAttributes[0]).Version;
 			}
 			customAttributes = Assembly.GetEntryAssembly().GetCustomAttributes(typeof(AssemblyDescriptionAttribute), false);
 			if (customAttributes != null && customAttributes.Length > 0)
 			{
-				productDescription = ((AssemblyDescriptionAttribute) customAttributes[0]).Description;
+				productDescription = ((AssemblyDescriptionAttribute)customAttributes[0]).Description;
 			}
 			customAttributes = Assembly.GetEntryAssembly().GetCustomAttributes(typeof(AssemblyCopyrightAttribute), false);
 			if (customAttributes != null && customAttributes.Length > 0)
 			{
-				productCopyright = ((AssemblyCopyrightAttribute) customAttributes[0]).Copyright;
+				productCopyright = ((AssemblyCopyrightAttribute)customAttributes[0]).Copyright;
 			}
 
 			Console.WriteLine(productName + " " + productVersion);
