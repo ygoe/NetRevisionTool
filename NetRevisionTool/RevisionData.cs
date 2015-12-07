@@ -77,6 +77,12 @@ namespace NetRevisionTool
 		/// </summary>
 		public string Branch { get; set; }
 
+        /// <summary>
+        /// Gets or sets the result of a git describe. When using tag as a revision, specify name using this format in git : vN.N.N
+        /// Ex.: Tag name v1.1.1
+        /// </summary>
+        public string Tag { get; set; }
+
 		#endregion Revision data properties
 
 		#region Operations
@@ -93,6 +99,7 @@ namespace NetRevisionTool
 			if (AuthorName == null) AuthorName = "";
 			if (AuthorEMail == null) AuthorEMail = "";
 			if (Branch == null) Branch = "";
+            if (Tag == null) Tag = "";
 		}
 
 		/// <summary>
@@ -114,6 +121,7 @@ namespace NetRevisionTool
 			Program.ShowDebugMessage("  RepositoryUrl: " + RepositoryUrl);
 			Program.ShowDebugMessage("  RevisionNumber: " + RevisionNumber);
 			Program.ShowDebugMessage("  VcsProvider: " + VcsProvider);
+            Program.ShowDebugMessage("  Tag: " + Tag);
 		}
 
 		#endregion Operations

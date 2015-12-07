@@ -80,7 +80,9 @@ namespace NetRevisionTool
 			format = format.Replace("{aname}", RevisionData.AuthorName);
 			format = format.Replace("{amail}", RevisionData.AuthorEMail);
 			format = format.Replace("{branch}", RevisionData.Branch);
-			format = Regex.Replace(format, @"\{branch:(.*?):(.+?)\}", m => RevisionData.Branch != m.Groups[2].Value ? m.Groups[1].Value + RevisionData.Branch : "");
+            format = format.Replace("{gitTag}", RevisionData.Tag);
+            
+            format = Regex.Replace(format, @"\{branch:(.*?):(.+?)\}", m => RevisionData.Branch != m.Groups[2].Value ? m.Groups[1].Value + RevisionData.Branch : "");
 
 			// Resolve time schemes
 			format = Regex.Replace(format, @"\{[AaBbCc]:.+?\}", FormatTimeScheme);
@@ -91,6 +93,7 @@ namespace NetRevisionTool
 			{
 				commitString = RevisionData.RevisionNumber.ToString();
 			}
+
 			format = format.Replace("{commit}", commitString);
 			format = Regex.Replace(format, @"\{commit:([0-9]+)\}", m => SafeSubstring(RevisionData.CommitHash, int.Parse(m.Groups[1].Value)));
 			format = Regex.Replace(format, @"\{(?:(?:[Xx]|[Bb](?:36)?|d2?)min):.+?\}", FormatTimeScheme);
