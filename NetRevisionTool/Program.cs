@@ -24,6 +24,16 @@ namespace NetRevisionTool
 
 		#endregion Private data
 
+		#region Public properties
+
+		/// <summary>
+		/// Gets the pattern of tag names to match. Null indicates that all tags are accepted. An
+		/// empty string indicates that no tag info shall be collected at all.
+		/// </summary>
+		public static string TagMatch { get; private set; }
+
+		#endregion Public properties
+
 		#region Main control flow
 
 		/// <summary>
@@ -83,6 +93,7 @@ namespace NetRevisionTool
 			var requireVcsOption = cmdLine.RegisterOption("require", 1);
 			var rejectModifiedOption = cmdLine.RegisterOption("rejectmod").Alias("rejectmodified");
 			var rejectMixedOption = cmdLine.RegisterOption("rejectmix").Alias("rejectmixed");
+			var tagMatchOption = cmdLine.RegisterOption("tagmatch", 1);
 			var multiProjectOption = cmdLine.RegisterOption("multi");
 			var scanRootOption = cmdLine.RegisterOption("root");
 			var decodeRevisionOption = cmdLine.RegisterOption("decode", 1);
@@ -161,6 +172,12 @@ namespace NetRevisionTool
 					aih.RestoreFile();
 				}
 				return;
+			}
+
+			// Setup public data
+			if (tagMatchOption.IsSet)
+			{
+				TagMatch = tagMatchOption.Value;
 			}
 
 			// Analyse working directory

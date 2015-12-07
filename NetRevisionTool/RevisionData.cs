@@ -77,6 +77,16 @@ namespace NetRevisionTool
 		/// </summary>
 		public string Branch { get; set; }
 
+		/// <summary>
+		/// Gets or sets the name of the most recent matching tag.
+		/// </summary>
+		public string Tag { get; set; }
+
+		/// <summary>
+		/// Gets or sets the number of commits since the most recent matching tag.
+		/// </summary>
+		public int CommitsAfterTag { get; set; }
+
 		#endregion Revision data properties
 
 		#region Operations
@@ -93,6 +103,7 @@ namespace NetRevisionTool
 			if (AuthorName == null) AuthorName = "";
 			if (AuthorEMail == null) AuthorEMail = "";
 			if (Branch == null) Branch = "";
+			if (Tag == null) Tag = "";
 		}
 
 		/// <summary>
@@ -113,6 +124,7 @@ namespace NetRevisionTool
 			Program.ShowDebugMessage("  IsModified: " + IsModified);
 			Program.ShowDebugMessage("  RepositoryUrl: " + RepositoryUrl);
 			Program.ShowDebugMessage("  RevisionNumber: " + RevisionNumber);
+			Program.ShowDebugMessage("  Tag: " + Tag + " + " + CommitsAfterTag);
 			Program.ShowDebugMessage("  VcsProvider: " + VcsProvider);
 		}
 

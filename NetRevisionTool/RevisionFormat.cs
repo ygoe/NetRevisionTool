@@ -66,11 +66,11 @@ namespace NetRevisionTool
 			// Simple data fields
 			format = format.Replace("{chash}", RevisionData.CommitHash);
 			format = format.Replace("{CHASH}", RevisionData.CommitHash.ToUpperInvariant());
-			format = Regex.Replace(format, @"\{chash:([0-9]+)\}", m => SafeSubstring(RevisionData.CommitHash, int.Parse(m.Groups[1].Value)));
-			format = Regex.Replace(format, @"\{CHASH:([0-9]+)\}", m => SafeSubstring(RevisionData.CommitHash.ToUpperInvariant(), int.Parse(m.Groups[1].Value)));
+			format = Regex.Replace(format, @"\{chash:([0-9]+)\}", m => SafeSubstring(RevisionData.CommitHash, int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture)));
+			format = Regex.Replace(format, @"\{CHASH:([0-9]+)\}", m => SafeSubstring(RevisionData.CommitHash.ToUpperInvariant(), int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture)));
 			format = format.Replace("{revnum}", RevisionData.RevisionNumber.ToString());
-			format = Regex.Replace(format, @"\{revnum\s*-\s*([0-9]+)\}", m => (RevisionData.RevisionNumber - int.Parse(m.Groups[1].Value)).ToString());
-			format = Regex.Replace(format, @"\{revnum\s*\+\s*([0-9]+)\}", m => (RevisionData.RevisionNumber + int.Parse(m.Groups[1].Value)).ToString());
+			format = Regex.Replace(format, @"\{revnum\s*-\s*([0-9]+)\}", m => (RevisionData.RevisionNumber - int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture)).ToString());
+			format = Regex.Replace(format, @"\{revnum\s*\+\s*([0-9]+)\}", m => (RevisionData.RevisionNumber + int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture)).ToString());
 			format = format.Replace("{!}", RevisionData.IsModified ? "!" : "");
 			format = Regex.Replace(format, @"\{!:(.*?)\}", m => RevisionData.IsModified ? m.Groups[1].Value : "");
 			format = format.Replace("{tz}", RevisionData.CommitTime.ToString("%K"));
@@ -81,6 +81,10 @@ namespace NetRevisionTool
 			format = format.Replace("{amail}", RevisionData.AuthorEMail);
 			format = format.Replace("{branch}", RevisionData.Branch);
 			format = Regex.Replace(format, @"\{branch:(.*?):(.+?)\}", m => RevisionData.Branch != m.Groups[2].Value ? m.Groups[1].Value + RevisionData.Branch : "");
+			format = format.Replace("{tag}", RevisionData.Tag + (RevisionData.CommitsAfterTag > 0 ? "-" + RevisionData.CommitsAfterTag : ""));
+			format = format.Replace("{tagname}", RevisionData.Tag);
+			format = format.Replace("{tagadd}", RevisionData.CommitsAfterTag.ToString());
+			format = Regex.Replace(format, @"\{tagadd:(.*?)\}", m => RevisionData.CommitsAfterTag > 0 ? m.Groups[1].Value + RevisionData.CommitsAfterTag : "");
 
 			// Resolve time schemes
 			format = Regex.Replace(format, @"\{[AaBbCc]:.+?\}", FormatTimeScheme);
@@ -92,7 +96,7 @@ namespace NetRevisionTool
 				commitString = RevisionData.RevisionNumber.ToString();
 			}
 			format = format.Replace("{commit}", commitString);
-			format = Regex.Replace(format, @"\{commit:([0-9]+)\}", m => SafeSubstring(RevisionData.CommitHash, int.Parse(m.Groups[1].Value)));
+			format = Regex.Replace(format, @"\{commit:([0-9]+)\}", m => SafeSubstring(RevisionData.CommitHash, int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture)));
 			format = Regex.Replace(format, @"\{(?:(?:[Xx]|[Bb](?:36)?|d2?)min):.+?\}", FormatTimeScheme);
 
 			// Return revision ID

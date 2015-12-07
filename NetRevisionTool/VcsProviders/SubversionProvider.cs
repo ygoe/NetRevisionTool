@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -116,7 +117,7 @@ namespace NetRevisionTool.VcsProviders
 				if (m.Success)
 				{
 					data.IsMixed = m.Groups[1].Success;
-					data.RevisionNumber = int.Parse(m.Groups[2].Value);
+					data.RevisionNumber = int.Parse(m.Groups[2].Value, CultureInfo.InvariantCulture);
 					break;
 				}
 			}
@@ -208,7 +209,7 @@ namespace NetRevisionTool.VcsProviders
 				m = Regex.Match(line, @"^Last Changed Date: ([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} [+-][0-9]{4})");
 				if (m.Success)
 				{
-					data.CommitTime = DateTimeOffset.Parse(m.Groups[1].Value);
+					data.CommitTime = DateTimeOffset.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture);
 				}
 			}
 			if (!p.WaitForExit(1000))
@@ -419,7 +420,7 @@ namespace NetRevisionTool.VcsProviders
 			get
 			{
 				return IntPtr.Size == 8 ||
-					!String.IsNullOrEmpty(Environment.GetEnvironmentVariable("PROCESSOR_ARCHITEW6432"));
+					!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("PROCESSOR_ARCHITEW6432"));
 			}
 		}
 

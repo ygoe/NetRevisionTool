@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -99,8 +100,8 @@ namespace NetRevisionTool.VcsProviders
 					if (m.Success)
 					{
 						data.CommitHash = m.Groups[1].Value;
-						data.CommitTime = DateTimeOffset.Parse(m.Groups[2].Value);
-						data.AuthorTime = DateTimeOffset.Parse(m.Groups[3].Value);
+						data.CommitTime = DateTimeOffset.Parse(m.Groups[2].Value, CultureInfo.InvariantCulture);
+						data.AuthorTime = DateTimeOffset.Parse(m.Groups[3].Value, CultureInfo.InvariantCulture);
 					}
 				}
 				else if (lineCount == 2)
@@ -168,6 +169,43 @@ namespace NetRevisionTool.VcsProviders
 				if (!p.WaitForExit(1000))
 				{
 					p.Kill();
+				}
+
+				// Query the most recent matching tag
+				if (!string.IsNullOrWhiteSpace(Program.TagMatch) || Program.TagMatch == null)
+				{
+					string tagMatchOption = "";
+					if (Program.TagMatch != null)
+					{
+						tagMatchOption = " --match \"" + Program.TagMatch + "\"";
+					}
+					Program.ShowDebugMessage("Executing: git describe --tags --first-parent --long" + tagMatchOption);
+					Program.ShowDebugMessage("  WorkingDirectory: " + path);
+					psi = new ProcessStartInfo(gitExec, "describe --tags --first-parent --long" + tagMatchOption);
+					psi.WorkingDirectory = path;
+					psi.RedirectStandardOutput = true;
+					psi.RedirectStandardError = true;
+					psi.StandardOutputEncoding = Encoding.Default;
+					psi.UseShellExecute = false;
+					p = Process.Start(psi);
+					line = null;
+					if (!p.StandardOutput.EndOfStream)
+					{
+						line = p.StandardOutput.ReadLine();
+						Program.ShowDebugMessage(line, 4);
+						line = line.Trim();
+						Match m = Regex.Match(line, @"^(.*)-([0-9]+)-g[0-9a-fA-F]+$");
+						if (m.Success)
+						{
+							data.Tag = m.Groups[1].Value.Trim();
+							data.CommitsAfterTag = int.Parse(m.Groups[2].Value, CultureInfo.InvariantCulture);
+						}
+					}
+					p.StandardOutput.ReadToEnd();   // Kindly eat up the remaining output
+					if (!p.WaitForExit(1000))
+					{
+						p.Kill();
+					}
 				}
 
 				// Query the linear revision number of the current branch (first parent)
@@ -281,7 +319,7 @@ namespace NetRevisionTool.VcsProviders
 				}
 			}
 
-			// Try user profile key (since Git for Windows ~2.6)
+			// Try user profile key (since Git for Windows 2.x)
 			if (git == null)
 			{
 				keyPath = @"Software\Microsoft\Windows\CurrentVersion\Uninstall\Git_is1";
@@ -360,7 +398,7 @@ namespace NetRevisionTool.VcsProviders
 			get
 			{
 				return IntPtr.Size == 8 ||
-					!String.IsNullOrEmpty(Environment.GetEnvironmentVariable("PROCESSOR_ARCHITEW6432"));
+					!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("PROCESSOR_ARCHITEW6432"));
 			}
 		}
 
