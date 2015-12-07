@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 
 namespace Unclassified.Util
@@ -32,6 +33,43 @@ namespace Unclassified.Util
 				Console.OutputEncoding.CodePage != Thread.CurrentThread.CurrentUICulture.TextInfo.ANSICodePage)
 			{
 				Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
+			}
+		}
+
+		/// <summary>
+		/// Enables UTF-8 output encoding if the current console window supports it.
+		/// </summary>
+		/// <remarks>
+		/// The Windows console window can only display Unicode content if not using the default
+		/// raster font. This method switches to UTF-8 and prints a test character to verify the
+		/// correct output. If Unicode is not supported, this results in multiple characters
+		/// displayed and the cursor moves by more than one column. The test output is removed and
+		/// the cursor reset to its original position. If the output is redirected, this method does
+		/// nothing at all.
+		/// </remarks>
+		public static void TryEnableUnicode()
+		{
+			if (!IsOutputRedirected)
+			{
+				var prevEncoding = Console.OutputEncoding;
+				int x = Console.CursorLeft;
+				Console.OutputEncoding = Encoding.UTF8;
+				Console.Write("Ω");
+				if (Console.CursorLeft == x + 1)
+				{
+					// One character displayed
+					Console.CursorLeft--;
+					Console.Write(" ");
+					Console.CursorLeft--;
+				}
+				else
+				{
+					// Multiple characters displayed, Unicode not supported
+					Console.OutputEncoding = prevEncoding;
+					Console.CursorLeft -= 3;
+					Console.Write("   ");
+					Console.CursorLeft -= 3;
+				}
 			}
 		}
 
