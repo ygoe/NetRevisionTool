@@ -8,10 +8,10 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCompany("unclassified software development")]
 
 // Assembly identity version. Must be a dotted-numeric version.
-[assembly: AssemblyVersion("2.3.3")]
+[assembly: AssemblyVersion("2.4")]
 
 // Repeat for Win32 file version resource because the assembly version is expanded to 4 parts.
-[assembly: AssemblyFileVersion("2.3.3")]
+[assembly: AssemblyFileVersion("2.4")]
 #if DEBUG
 [assembly: AssemblyConfiguration("Debug")]
 #else
@@ -21,6 +21,9 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // Version history:
+//
+// 2.4 (2015-12-21)
+// * Added Git tag support
 //
 // 2.3.3 (2015-12-01)
 // * Optimised detection of Git for Windows 2.x
