@@ -12,12 +12,15 @@ using System.Runtime.InteropServices;
 
 // Repeat for Win32 file version resource because the assembly version is expanded to 4 parts.
 [assembly: AssemblyFileVersion("2.4")]
+
+// Indicate the build configuration
 #if DEBUG
 [assembly: AssemblyConfiguration("Debug")]
 #else
 [assembly: AssemblyConfiguration("Release")]
 #endif
 
+// Other attributes
 [assembly: ComVisible(false)]
 
 // Version history:

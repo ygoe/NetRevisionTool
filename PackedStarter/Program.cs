@@ -22,14 +22,13 @@ namespace PackedStarter
 			byte[] bytes = new byte[byteStream.Length];
 			byteStream.Seek(0, SeekOrigin.Begin);
 			byteStream.Read(bytes, 0, bytes.Length);
+			byteStream.Dispose();
 
 			// Load embedded assembly
 			Assembly assembly = Assembly.Load(bytes);
 
 			// Find and invoke Program.Main method
-			Type programType = assembly.GetType("NetRevisionTool.Program");
-			MethodInfo mainMethod = programType.GetMethod("Main");
-			object returnValue = mainMethod.Invoke(null, new object[] { args });
+			object returnValue = assembly.EntryPoint.Invoke(null, new object[] { args });
 
 			// Pass on return code
 			if (returnValue is int)
