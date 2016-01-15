@@ -1,4 +1,9 @@
 # NetRevisionTool
 Injects the current VCS revision into a .NET assembly build.
 
-See http://unclassified.software/apps/netrevisiontool for further information.
+To print the help use
+````
+NetRevisionTool.exe /help
+````
+
+See http://unclassified.software/apps/netrevisiontool for further information and download the latest build `NetRevisionTool.exe`.
