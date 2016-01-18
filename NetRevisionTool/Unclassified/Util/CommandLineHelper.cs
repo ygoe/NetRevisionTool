@@ -233,8 +233,8 @@ namespace Unclassified.Util
 			/// <param name="parameterCount">The number of additional parameters for this option.</param>
 			internal Option(string name, int parameterCount)
 			{
-				this.Names = new List<string>() { name };
-				this.ParameterCount = parameterCount;
+				Names = new List<string>() { name };
+				ParameterCount = parameterCount;
 			}
 
 			/// <summary>
@@ -290,7 +290,7 @@ namespace Unclassified.Util
 			/// <returns>The current <see cref="Option"/> instance.</returns>
 			public Option Alias(params string[] names)
 			{
-				this.Names.AddRange(names);
+				Names.AddRange(names);
 				return this;
 			}
 
@@ -301,7 +301,7 @@ namespace Unclassified.Util
 			/// <returns>The current <see cref="Option"/> instance.</returns>
 			public Option Required()
 			{
-				this.IsRequired = true;
+				IsRequired = true;
 				return this;
 			}
 
@@ -312,7 +312,7 @@ namespace Unclassified.Util
 			/// <returns>The current <see cref="Option"/> instance.</returns>
 			public Option Single()
 			{
-				this.IsSingle = true;
+				IsSingle = true;
 				return this;
 			}
 
@@ -323,7 +323,7 @@ namespace Unclassified.Util
 			/// <returns>The current <see cref="Option"/> instance.</returns>
 			public Option Do(Action<Argument> action)
 			{
-				this.Action = action;
+				Action = action;
 				return this;
 			}
 		}
@@ -341,8 +341,8 @@ namespace Unclassified.Util
 			/// <param name="values">The additional parameter values for the option; or the argument value.</param>
 			internal Argument(Option option, string[] values)
 			{
-				this.Option = option;
-				this.Values = values;
+				Option = option;
+				Values = values;
 			}
 
 			/// <summary>
