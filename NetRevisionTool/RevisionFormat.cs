@@ -104,6 +104,15 @@ namespace NetRevisionTool
 			format = Regex.Replace(format, @"\{commit:([0-9]+)\}", m => SafeSubstring(RevisionData.CommitHash, int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture)));
 			format = Regex.Replace(format, @"\{(?:(?:[Xx]|[Bb](?:36)?|d2?)min):.+?\}", FormatTimeScheme);
 
+			// Copyright year
+			string copyright = BuildTime.Year.ToString();
+			if (RevisionData.CommitTime.Year > 1)
+			{
+				copyright = RevisionData.CommitTime.Year.ToString();
+			}
+			format = format.Replace("{copyright}", copyright);
+			format = Regex.Replace(format, @"\{copyright:([0-9]+?)\}", m => (m.Groups[1].Value != copyright ? m.Groups[1].Value + "–" : "") + copyright);
+
 			// Return revision ID
 			return format;
 		}

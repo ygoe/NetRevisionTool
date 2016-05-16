@@ -64,7 +64,8 @@ namespace NetRevisionTool
 		/// <param name="simpleAttributes">Indicates whether simple version attributes are processed.</param>
 		/// <param name="informationalAttribute">Indicates whether the AssemblyInformationalVersion attribute is processed.</param>
 		/// <param name="revOnly">Indicates whether only the last number is replaced by the revision number.</param>
-		public void PatchFile(string fallbackFormat, RevisionData data, bool simpleAttributes, bool informationalAttribute, bool revOnly)
+		/// <param name="copyrightAttribute">Indicates whether the copyright year is replaced.</param>
+		public void PatchFile(string fallbackFormat, RevisionData data, bool simpleAttributes, bool informationalAttribute, bool revOnly, bool copyrightAttribute)
 		{
 			Program.ShowDebugMessage("Patching file \"" + fileName + "\"…");
 			string backupFileName = CreateBackup();
@@ -96,7 +97,7 @@ namespace NetRevisionTool
 			rf.RevisionData = data;
 
 			// Process all lines in the file
-			ResolveAllLines(rf, simpleAttributes, informationalAttribute, revOnly);
+			ResolveAllLines(rf, simpleAttributes, informationalAttribute, revOnly, copyrightAttribute);
 
 			// Write back all lines to the file
 			WriteFileLines();
@@ -305,7 +306,8 @@ namespace NetRevisionTool
 		/// <param name="simpleAttributes">Indicates whether simple version attributes are processed.</param>
 		/// <param name="informationalAttribute">Indicates whether the AssemblyInformationalVersion attribute is processed.</param>
 		/// <param name="revOnly">Indicates whether only the last number is replaced by the revision number.</param>
-		private void ResolveAllLines(RevisionFormat rf, bool simpleAttributes, bool informationalAttribute, bool revOnly)
+		/// <param name="copyrightAttribute">Indicates whether the copyright year is replaced.</param>
+		private void ResolveAllLines(RevisionFormat rf, bool simpleAttributes, bool informationalAttribute, bool revOnly, bool copyrightAttribute)
 		{
 			// Preparing a truncated dotted-numeric version if we may need it
 			string truncVersion = null;
@@ -338,9 +340,9 @@ namespace NetRevisionTool
 					// Still nothing useful available
 					Program.ShowDebugMessage("Revision number is 0. Did you really mean to use /revonly?", 2);
 				}
-				if (revNum > UInt16.MaxValue)
+				if (revNum > ushort.MaxValue)
 				{
-					throw new ConsoleException("Revision number " + revNum + " is greater than " + UInt16.MaxValue + " and cannot be used here. Consider using the offset option.", ExitCodes.RevNumTooLarge);
+					throw new ConsoleException("Revision number " + revNum + " is greater than " + ushort.MaxValue + " and cannot be used here. Consider using the offset option.", ExitCodes.RevNumTooLarge);
 				}
 			}
 
@@ -423,6 +425,23 @@ namespace NetRevisionTool
 						lines[i] = match.Groups[1].Value + revisionId + match.Groups[3].Value;
 						Program.ShowDebugMessage("Found AssemblyInformationalVersion attribute.", 1);
 						Program.ShowDebugMessage("  Replaced \"" + match.Groups[2].Value + "\" with \"" + revisionId + "\".");
+					}
+				}
+
+				if (copyrightAttribute)
+				{
+					// Replace the entire value of Copyright with the resolved string of what was
+					// already there.
+					match = Regex.Match(
+						lines[i],
+						@"^(\s*\" + attrStart + @"\s*assembly\s*:\s*AssemblyCopyright\s*\(\s*"")(.*?)(""\s*\)\s*\" + attrEnd + @".*)$",
+						RegexOptions.IgnoreCase);
+					if (match.Success)
+					{
+						string copyrightText = rf.Resolve(match.Groups[2].Value);
+						lines[i] = match.Groups[1].Value + copyrightText + match.Groups[3].Value;
+						Program.ShowDebugMessage("Found AssemblyCopyright attribute.", 1);
+						Program.ShowDebugMessage("  Replaced \"" + match.Groups[2].Value + "\" with \"" + copyrightText + "\".");
 					}
 				}
 			}

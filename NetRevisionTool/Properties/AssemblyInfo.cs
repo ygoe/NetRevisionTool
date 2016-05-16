@@ -25,8 +25,9 @@ using System.Runtime.InteropServices;
 
 // Version history:
 //
-// 2.5 (2016-xx-xx)
+// 2.5 (2016-05-16)
 // * Added /removetagv option to make version number tag names useful
+// * Added copyright year resolving, opt-out with /nocopyright option
 //
 // 2.4 (2015-12-21)
 // * Added Git tag support

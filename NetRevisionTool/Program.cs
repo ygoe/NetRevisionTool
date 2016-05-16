@@ -92,7 +92,7 @@ namespace NetRevisionTool
 			var restorePatchedFilesOption = cmdLine.RegisterOption("restore");
 			var simpleAttributeOption = cmdLine.RegisterOption("simple");
 			var informationalAttributeOption = cmdLine.RegisterOption("info");
-			var allAttributesOption = cmdLine.RegisterOption("all");
+			var noCopyrightAttributeOption = cmdLine.RegisterOption("nocopyright");
 			var formatOption = cmdLine.RegisterOption("format", 1);
 			var revisionOnlyOption = cmdLine.RegisterOption("revonly");
 			var requireVcsOption = cmdLine.RegisterOption("require", 1);
@@ -289,7 +289,7 @@ namespace NetRevisionTool
 				foreach (string projectDir in projectDirs)
 				{
 					var aih = new AssemblyInfoHelper(projectDir, true);
-					aih.PatchFile(format, data, simpleAttributes, informationalAttribute, revisionOnlyOption.IsSet);
+					aih.PatchFile(format, data, simpleAttributes, informationalAttribute, revisionOnlyOption.IsSet, !noCopyrightAttributeOption.IsSet);
 				}
 			}
 			else

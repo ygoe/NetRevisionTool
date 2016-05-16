@@ -17,8 +17,9 @@ The path parameter is used to locate the project’s AssemblyInfo files that sha
 
 /format <str>    Sets the revision format string. May also be found from source files.
 /revonly         Only sets the forth part of an existing version in the simple version attributes to the revision number, if available.
-/simple          Updates only the simple assembly version attributes in the source.
-/info            Updates only the informational assembly version attribute in the source.
+/simple          Updates ONLY the simple assembly version attributes in the source.
+/info            Updates ONLY the informational assembly version attribute in the source.
+/nocopyright     Does NOT update the copyright year in the source.
 
 /require <vcs>   Requires a working directory of the specified VCS.
 /rejectmod       Quits with an error return code if the working directory is modified.
@@ -70,6 +71,8 @@ The format defines how information about the commit or revision is formatted int
 {tagname}             Most recent matching tag name only.
 {tagadd}              Number of commits since the most recent matching tag.
 {tagadd:<sep>}        Number of commits since the most recent matching tag, prefixed with <sep>, or empty.
+{copyright}           Abbreviation for the copyright year (commit or build time).
+{copyright:<first>}   Abbreviation for the copyright year range, starting at <first>.
 
 ♦TIME SCHEMES♣
 
