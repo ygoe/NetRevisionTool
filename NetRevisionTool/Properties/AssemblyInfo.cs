@@ -4,14 +4,14 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyProduct("NetRevisionTool")]
 [assembly: AssemblyTitle("NetRevisionTool")]
 [assembly: AssemblyDescription("Injects the current VCS revision into a .NET assembly build.")]
-[assembly: AssemblyCopyright("© 2011–2015 Yves Goergen")]
+[assembly: AssemblyCopyright("© 2011–2016 Yves Goergen")]
 [assembly: AssemblyCompany("unclassified software development")]
 
 // Assembly identity version. Must be a dotted-numeric version.
-[assembly: AssemblyVersion("2.4")]
+[assembly: AssemblyVersion("2.5")]
 
 // Repeat for Win32 file version resource because the assembly version is expanded to 4 parts.
-[assembly: AssemblyFileVersion("2.4")]
+[assembly: AssemblyFileVersion("2.5")]
 
 // Indicate the build configuration
 #if DEBUG
@@ -24,6 +24,9 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // Version history:
+//
+// 2.5 (2016-xx-xx)
+// * Added /removetagv option to make version number tag names useful
 //
 // 2.4 (2015-12-21)
 // * Added Git tag support

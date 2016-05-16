@@ -31,6 +31,12 @@ namespace NetRevisionTool
 		/// </summary>
 		public static string TagMatch { get; private set; }
 
+		/// <summary>
+		/// Gets a value indicating whether a leading "v" followed by a digit will be removed from
+		/// the tag name.
+		/// </summary>
+		public static bool RemoveTagV { get; private set; }
+
 		#endregion Public properties
 
 		#region Main control flow
@@ -93,6 +99,7 @@ namespace NetRevisionTool
 			var rejectModifiedOption = cmdLine.RegisterOption("rejectmod").Alias("rejectmodified");
 			var rejectMixedOption = cmdLine.RegisterOption("rejectmix").Alias("rejectmixed");
 			var tagMatchOption = cmdLine.RegisterOption("tagmatch", 1);
+			var removeTagVOption = cmdLine.RegisterOption("removetagv");
 			var multiProjectOption = cmdLine.RegisterOption("multi");
 			var scanRootOption = cmdLine.RegisterOption("root");
 			var decodeRevisionOption = cmdLine.RegisterOption("decode", 1);
@@ -178,6 +185,7 @@ namespace NetRevisionTool
 			{
 				TagMatch = tagMatchOption.Value;
 			}
+			RemoveTagV = removeTagVOption.IsSet;
 
 			// Analyse working directory
 			RevisionData data = ProcessDirectory(path, scanRootOption.IsSet, requireVcsOption.Value);

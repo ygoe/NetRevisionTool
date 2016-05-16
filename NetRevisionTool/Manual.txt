@@ -24,7 +24,8 @@ The path parameter is used to locate the project’s AssemblyInfo files that sha
 /rejectmod       Quits with an error return code if the working directory is modified.
 /rejectmix       Quits with an error return code if the working directory contains mixed revisions.
 /tagmatch <pattern>
-                 The glob pattern of tag names to match. If "", no tag information will be collected.
+                 The glob pattern of tag names to match. If “”, no tag information will be collected.
+/removetagv      Removes a leading “v” followed by a digit from the tag name, see {tag}.
 /multi           Multi-project mode: Processes all project subdirectories. The path parameter must be the .sln file.
 /root            Scan the working directory root for revision data instead of the specified path. (Can make a difference with SVN.)
 /decode <revId>  Decodes a formatted revision ID. Set /format or keep a format in the AssemblyInfo file.
@@ -34,7 +35,7 @@ If the /decode option is set, the specified revision ID is decoded into the time
 If the /patch or /restore options are not set, the generated revision ID is just displayed.
 If the /format option is not set, the format string is searched in the AssemblyInfo source file from the AssemblyInformationalVersion attribute.
 If the directory is not a valid working directory of any supported VCS, the current time is taken for the commit time. If the /require option is set, an error occurs.
-To match only tags with the common version number scheme, like v1.0 or v2.5.1, set the option: /tagmatch v[0-9]*
+To match only tags with the common version number scheme, like v1.0 or v2.5.1, set the option: /tagmatch v[0-9]* /removetagv
 If you don’t use tags and tag scanning takes too long, set the option to disable tag scanning: /tagmatch ""
 
 ♦ASSEMBLYVERSION ATTRIBUTES♣
@@ -133,7 +134,7 @@ The option /revonly can be used without a VCS by specifying a format that resolv
 
 /patch /revonly /format "{b:h:2015-04}"
 
-When using the AssemblyInformationalVersion attribute, it must contain the full version format like "2.0.1.{b:h:2015-04}" and the /revonly and /format parameters must not be used.
+When using the AssemblyInformationalVersion attribute, it must contain the full version format like “2.0.1.{b:h:2015-04}” and the /revonly and /format parameters must not be used.
 
 ♦BATCH EXAMPLE♣
 
