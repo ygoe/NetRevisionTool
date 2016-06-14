@@ -8,10 +8,10 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCompany("unclassified software development")]
 
 // Assembly identity version. Must be a dotted-numeric version.
-[assembly: AssemblyVersion("2.5")]
+[assembly: AssemblyVersion("2.5.1")]
 
 // Repeat for Win32 file version resource because the assembly version is expanded to 4 parts.
-[assembly: AssemblyFileVersion("2.5")]
+[assembly: AssemblyFileVersion("2.5.1")]
 
 // Indicate the build configuration
 #if DEBUG
@@ -24,6 +24,9 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // Version history:
+//
+// 2.5.1 (2016-06-14)
+// * Fixed console redirection detection for "nul"
 //
 // 2.5 (2016-05-16)
 // * Added /removetagv option to make version number tag names useful

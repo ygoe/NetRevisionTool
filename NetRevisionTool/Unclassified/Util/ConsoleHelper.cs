@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2015, Yves Goergen, http://unclassified.software/source/consolehelper
+﻿// Copyright (c) 2016, Yves Goergen, http://unclassified.software/source/consolehelper
 //
 // Copying and distribution of this file, with or without modification, are permitted provided the
 // copyright notice and this notice are preserved. This file is offered as-is, without any warranty.
@@ -126,6 +126,16 @@ namespace Unclassified.Util
 		[DllImport("kernel32.dll", SetLastError = true)]
 		private static extern IntPtr GetStdHandle(StdHandle nStdHandle);
 
+		/// <summary>
+		/// Retrieves the current input mode of a console's input buffer or the current output mode
+		/// of a console screen buffer.
+		/// </summary>
+		/// <param name="hConsoleHandle">A handle to the console input buffer or the console screen buffer.</param>
+		/// <param name="lpMode">A pointer to a variable that receives the current mode of the specified buffer.</param>
+		/// <returns>true, if the function succeeds; otherwise, false.</returns>
+		[DllImport("kernel32.dll", SetLastError = true)]
+		private static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
+
 		#endregion Native interop
 
 		private static bool? isInputRedirected;
@@ -144,7 +154,11 @@ namespace Unclassified.Util
 			{
 				if (isInputRedirected == null)
 				{
-					isInputRedirected = GetFileType(GetStdHandle(StdHandle.Input)) != FileType.FileTypeChar;
+					uint mode;
+					isInputRedirected =
+						GetFileType(GetStdHandle(StdHandle.Input)) != FileType.FileTypeChar ||
+						!GetConsoleMode(GetStdHandle(StdHandle.Input), out mode);
+					// Additional GetConsoleMode check required to detect redirection from "nul"
 				}
 				return isInputRedirected == true;
 			}
@@ -163,7 +177,11 @@ namespace Unclassified.Util
 			{
 				if (isOutputRedirected == null)
 				{
-					isOutputRedirected = GetFileType(GetStdHandle(StdHandle.Output)) != FileType.FileTypeChar;
+					uint mode;
+					isOutputRedirected =
+						GetFileType(GetStdHandle(StdHandle.Output)) != FileType.FileTypeChar ||
+						!GetConsoleMode(GetStdHandle(StdHandle.Output), out mode);
+					// Additional GetConsoleMode check required to detect redirection to "nul"
 				}
 				return isOutputRedirected == true;
 			}
