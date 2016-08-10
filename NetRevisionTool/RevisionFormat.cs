@@ -79,8 +79,19 @@ namespace NetRevisionTool
 			format = format.Replace("{cmail}", RevisionData.CommitterEMail);
 			format = format.Replace("{aname}", RevisionData.AuthorName);
 			format = format.Replace("{amail}", RevisionData.AuthorEMail);
-			format = format.Replace("{branch}", RevisionData.Branch);
-			format = Regex.Replace(format, @"\{branch:(.*?):(.+?)\}", m => RevisionData.Branch != m.Groups[2].Value ? m.Groups[1].Value + RevisionData.Branch : "");
+
+			if (!string.IsNullOrEmpty(RevisionData.Branch))
+			{
+				format = format.Replace("{branch}", RevisionData.Branch);
+				format = Regex.Replace(format, @"\{branch:(.*?):(.+?)\}", m => RevisionData.Branch != m.Groups[2].Value ? m.Groups[1].Value + RevisionData.Branch : "");
+			}
+			else
+			{
+				// No branch name available, leave it away completely
+				format = format.Replace("{branch}", "");
+				format = Regex.Replace(format, @"\{branch:(.*?):(.+?)\}", "");
+			}
+
 			string tagName = RevisionData.Tag;
 			if (Program.RemoveTagV && Regex.IsMatch(tagName, "^v[0-9]"))
 			{

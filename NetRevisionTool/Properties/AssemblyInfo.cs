@@ -8,10 +8,10 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCompany("unclassified software development")]
 
 // Assembly identity version. Must be a dotted-numeric version.
-[assembly: AssemblyVersion("2.5.1")]
+[assembly: AssemblyVersion("2.5.2")]
 
 // Repeat for Win32 file version resource because the assembly version is expanded to 4 parts.
-[assembly: AssemblyFileVersion("2.5.1")]
+[assembly: AssemblyFileVersion("2.5.2")]
 
 // Indicate the build configuration
 #if DEBUG
@@ -24,6 +24,9 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // Version history:
+//
+// 2.5.2 (2016-08-10)
+// * Detect GitLab CI runner and try to determine branch name from environment variables if necessary
 //
 // 2.5.1 (2016-06-14)
 // * Fixed console redirection detection for "nul"

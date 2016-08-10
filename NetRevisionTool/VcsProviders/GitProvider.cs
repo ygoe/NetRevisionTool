@@ -171,6 +171,30 @@ namespace NetRevisionTool.VcsProviders
 					p.Kill();
 				}
 
+				if ((data.Branch == "HEAD" || data.Branch.StartsWith("heads/")) &&
+					Environment.GetEnvironmentVariable("CI_SERVER") == "yes")
+				{
+					// GitLab runner uses detached HEAD so the normal Git command will always return
+					// "HEAD" instead of the actual branch name.
+					
+					// "HEAD" is reported by default with GitLab CI runner.
+					// "heads/*" is reported if an explicit 'git checkout -B' command has been issued.
+					
+					// Use GitLab CI provided environment variables instead if the available data is
+					// plausible.
+					if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI_BUILD_REF_NAME")) &&
+						string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI_BUILD_TAG")))
+					{
+						Program.ShowDebugMessage("Reading branch name from CI environment variable");
+						data.Branch = Environment.GetEnvironmentVariable("CI_BUILD_REF_NAME");
+					}
+					else
+					{
+						Program.ShowDebugMessage("No branch name available in CI environment");
+						data.Branch = "";
+					}
+				}
+
 				// Query the most recent matching tag
 				if (!string.IsNullOrWhiteSpace(Program.TagMatch) || Program.TagMatch == null)
 				{
