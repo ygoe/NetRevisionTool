@@ -11,6 +11,7 @@ The path parameter is used to locate the project’s AssemblyInfo files that sha
 /help, /?        Shows this help text.
 /version         Shows the application version.
 /debug           Shows debug output during processing.
+/echo            Shows the final informational version string generated for the build.
 
 /patch           Patches any found AssemblyInfo source file.
 /restore         Restores patched files.
