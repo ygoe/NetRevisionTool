@@ -65,6 +65,7 @@ The format defines how information about the commit or revision is formatted int
 {url}                 Repository URL.
 {cname}, {cmail}      Committer’s name or e-mail address.
 {aname}, {amail}      Author’s name or e-mail address.
+{mname}               Computer (machine) name that the tool was executed on.
 {branch}              Currently checked-out branch.
 {branch:<sep>:<ref>}  Branch name, if not <ref> or empty, separated by <sep>, otherwise empty.
 {tag}                 Most recent matching tag name, with additional info.
