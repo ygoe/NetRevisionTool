@@ -104,6 +104,7 @@ namespace NetRevisionTool
 			var scanRootOption = cmdLine.RegisterOption("root");
 			var decodeRevisionOption = cmdLine.RegisterOption("decode", 1);
 			var predictRevisionsOption = cmdLine.RegisterOption("predict");
+            var echoGeneratedAttributeOption = cmdLine.RegisterOption("echo");
 
 			try
 			{
@@ -289,7 +290,7 @@ namespace NetRevisionTool
 				foreach (string projectDir in projectDirs)
 				{
 					var aih = new AssemblyInfoHelper(projectDir, true);
-					aih.PatchFile(format, data, simpleAttributes, informationalAttribute, revisionOnlyOption.IsSet, !noCopyrightAttributeOption.IsSet);
+					aih.PatchFile(format, data, simpleAttributes, informationalAttribute, revisionOnlyOption.IsSet, !noCopyrightAttributeOption.IsSet, echoGeneratedAttributeOption.IsSet);
 				}
 			}
 			else

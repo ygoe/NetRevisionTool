@@ -11,6 +11,7 @@ The path parameter is used to locate the project’s AssemblyInfo files that sha
 /help, /?        Shows this help text.
 /version         Shows the application version.
 /debug           Shows debug output during processing.
+/echo            Shows the final informational version string generated for the build.
 
 /patch           Patches any found AssemblyInfo source file.
 /restore         Restores patched files.
@@ -65,6 +66,7 @@ The format defines how information about the commit or revision is formatted int
 {url}                 Repository URL.
 {cname}, {cmail}      Committer’s name or e-mail address.
 {aname}, {amail}      Author’s name or e-mail address.
+{mname}               Computer (machine) name that the tool was executed on.
 {branch}              Currently checked-out branch.
 {branch:<sep>:<ref>}  Branch name, if not <ref> or empty, separated by <sep>, otherwise empty.
 {tag}                 Most recent matching tag name, with additional info.
