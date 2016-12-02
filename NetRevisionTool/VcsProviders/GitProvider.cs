@@ -287,14 +287,14 @@ namespace NetRevisionTool.VcsProviders
 						// Strip quotes (no Path.PathSeparator supported in quoted directories though)
 						dir = dir.Substring(1, dir.Length - 2);
 					}
-					git = Path.Combine(dir, gitExeName);
-					if (File.Exists(git))
+					string testPath = Path.Combine(dir, gitExeName);
+					if (File.Exists(testPath))
 					{
+						git = testPath;
 						Program.ShowDebugMessage("Found " + gitExeName + " in \"" + dir + "\" via %PATH%", 1);
 						break;
 					}
 				}
-				if (!File.Exists(git)) git = null;
 			}
 
 			// Read registry uninstaller key
@@ -307,13 +307,10 @@ namespace NetRevisionTool.VcsProviders
 					object loc = key.GetValue("InstallLocation");
 					if (loc is string)
 					{
-						git = Path.Combine((string)loc, Path.Combine("bin", gitExeName));
-						if (!File.Exists(git))
+						string testPath = Path.Combine((string)loc, Path.Combine("bin", gitExeName));
+						if (File.Exists(testPath))
 						{
-							git = null;
-						}
-						else
-						{
+							git = testPath;
 							Program.ShowDebugMessage("Found " + gitExeName + " in \"" + (string)loc + "\" via HKLM\\" + keyPath + "\\InstallLocation", 1);
 						}
 					}
@@ -330,13 +327,10 @@ namespace NetRevisionTool.VcsProviders
 					object loc = key.GetValue("InstallLocation");
 					if (loc is string)
 					{
-						git = Path.Combine((string)loc, Path.Combine("bin", gitExeName));
-						if (!File.Exists(git))
+						string testPath = Path.Combine((string)loc, Path.Combine("bin", gitExeName));
+						if (File.Exists(testPath))
 						{
-							git = null;
-						}
-						else
-						{
+							git = testPath;
 							Program.ShowDebugMessage("Found " + gitExeName + " in \"" + (string)loc + "\" via HKLM\\" + keyPath + "\\InstallLocation", 1);
 						}
 					}
@@ -353,13 +347,10 @@ namespace NetRevisionTool.VcsProviders
 					object loc = key.GetValue("InstallLocation");
 					if (loc is string)
 					{
-						git = Path.Combine((string)loc, Path.Combine("bin", gitExeName));
-						if (!File.Exists(git))
+						string testPath = Path.Combine((string)loc, Path.Combine("bin", gitExeName));
+						if (File.Exists(testPath))
 						{
-							git = null;
-						}
-						else
-						{
+							git = testPath;
 							Program.ShowDebugMessage("Found " + gitExeName + " in \"" + (string)loc + "\" via HKCU\\" + keyPath + "\\InstallLocation", 1);
 						}
 					}
@@ -371,15 +362,17 @@ namespace NetRevisionTool.VcsProviders
 			{
 				foreach (string dir in Directory.GetDirectories(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "git*"))
 				{
-					git = Path.Combine(dir, gitExeName);
-					if (File.Exists(git))
+					string testPath = Path.Combine(dir, gitExeName);
+					if (File.Exists(testPath))
 					{
+						git = testPath;
 						Program.ShowDebugMessage("Found " + gitExeName + " in \"" + dir + "\" via %ProgramFiles%\\git*", 1);
 						break;
 					}
-					git = Path.Combine(dir, "bin", gitExeName);
-					if (File.Exists(git))
+					testPath = Path.Combine(dir, "bin", gitExeName);
+					if (File.Exists(testPath))
 					{
+						git = testPath;
 						Program.ShowDebugMessage("Found " + gitExeName + " in \"" + dir + "\" via %ProgramFiles%\\git*\\bin", 1);
 						break;
 					}
@@ -391,18 +384,44 @@ namespace NetRevisionTool.VcsProviders
 			{
 				foreach (string dir in Directory.GetDirectories(ProgramFilesX86(), "git*"))
 				{
-					git = Path.Combine(dir, gitExeName);
-					if (File.Exists(git))
+					string testPath = Path.Combine(dir, gitExeName);
+					if (File.Exists(testPath))
 					{
+						git = testPath;
 						Program.ShowDebugMessage("Found " + gitExeName + " in \"" + dir + "\" via %ProgramFiles(x86)%\\git*", 1);
 						break;
 					}
-					git = Path.Combine(dir, "bin", gitExeName);
-					if (File.Exists(git))
+					testPath = Path.Combine(dir, "bin", gitExeName);
+					if (File.Exists(testPath))
 					{
+						git = testPath;
 						Program.ShowDebugMessage("Found " + gitExeName + " in \"" + dir + "\" via %ProgramFiles(x86)%\\git*\\bin", 1);
 						break;
 					}
+				}
+			}
+
+			// Try Atlassian SourceTree local directory
+			if (git == null)
+			{
+				string dir = Environment.ExpandEnvironmentVariables(@"%USERPROFILE%\AppData\Local\Atlassian\SourceTree\git_local\bin");
+				string testPath = Path.Combine(dir, gitExeName);
+				if (File.Exists(testPath))
+				{
+					git = testPath;
+					Program.ShowDebugMessage("Found " + gitExeName + " in \"" + dir + "\"", 1);
+				}
+			}
+
+			// Try Tower local directory
+			if (git == null)
+			{
+				string dir = Environment.ExpandEnvironmentVariables(ProgramFilesX86() + @"\fournova\Tower\vendor\Git\bin");
+				string testPath = Path.Combine(dir, gitExeName);
+				if (File.Exists(testPath))
+				{
+					git = testPath;
+					Program.ShowDebugMessage("Found " + gitExeName + " in \"" + dir + "\"", 1);
 				}
 			}
 			return git;
