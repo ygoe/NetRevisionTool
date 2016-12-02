@@ -1,17 +1,17 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyProduct("NetRevisionTool")]
-[assembly: AssemblyTitle("NetRevisionTool")]
+[assembly: AssemblyProduct(".NET Revision Tool")]
+[assembly: AssemblyTitle(".NET Revision Tool")]
 [assembly: AssemblyDescription("Injects the current VCS revision into a .NET assembly build.")]
 [assembly: AssemblyCopyright("© 2011–2016 Yves Goergen")]
 [assembly: AssemblyCompany("unclassified software development")]
 
 // Assembly identity version. Must be a dotted-numeric version.
-[assembly: AssemblyVersion("2.5.3")]
+[assembly: AssemblyVersion("2.6")]
 
 // Repeat for Win32 file version resource because the assembly version is expanded to 4 parts.
-[assembly: AssemblyFileVersion("2.5.3")]
+[assembly: AssemblyFileVersion("2.6")]
 
 // Indicate the build configuration
 #if DEBUG
@@ -25,8 +25,10 @@ using System.Runtime.InteropServices;
 
 // Version history:
 //
-// 2.5.3 (2016-12-02)
+// 2.6 (2016-12-02)
 // * Finding git.exe from SourceTree and Tower local installations
+// * Added {mname} placeholder resolving to the machine name
+// * Added /echo option to display the resolved informational version string
 //
 // 2.5.2 (2016-08-10)
 // * Detect GitLab CI runner and try to determine branch name from environment variables if necessary

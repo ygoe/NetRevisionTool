@@ -93,6 +93,7 @@ namespace NetRevisionTool
 			var simpleAttributeOption = cmdLine.RegisterOption("simple");
 			var informationalAttributeOption = cmdLine.RegisterOption("info");
 			var noCopyrightAttributeOption = cmdLine.RegisterOption("nocopyright");
+			var echoOption = cmdLine.RegisterOption("echo");
 			var formatOption = cmdLine.RegisterOption("format", 1);
 			var revisionOnlyOption = cmdLine.RegisterOption("revonly");
 			var requireVcsOption = cmdLine.RegisterOption("require", 1);
@@ -137,9 +138,9 @@ namespace NetRevisionTool
 			}
 
 			// Check for environment variable from PowerShell build framework.
-			// If psbuild has set this variable, it is using NetRevisionTool itself in multi-project
-			// mode and pre/postbuild actions in individual projects should not do anything on their
-			// own.
+			// If psbuild has set this variable, it is using .NET Revision Tool itself in
+			// multi-project mode and pre/postbuild actions in individual projects should not do
+			// anything on their own.
 			if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("SuppressNetRevisionTool")))
 			{
 				ShowDebugMessage("SuppressNetRevisionTool environment variable is set. Quitting…");
@@ -289,7 +290,7 @@ namespace NetRevisionTool
 				foreach (string projectDir in projectDirs)
 				{
 					var aih = new AssemblyInfoHelper(projectDir, true);
-					aih.PatchFile(format, data, simpleAttributes, informationalAttribute, revisionOnlyOption.IsSet, !noCopyrightAttributeOption.IsSet);
+					aih.PatchFile(format, data, simpleAttributes, informationalAttribute, revisionOnlyOption.IsSet, !noCopyrightAttributeOption.IsSet, echoOption.IsSet);
 				}
 			}
 			else

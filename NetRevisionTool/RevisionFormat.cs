@@ -79,6 +79,7 @@ namespace NetRevisionTool
 			format = format.Replace("{cmail}", RevisionData.CommitterEMail);
 			format = format.Replace("{aname}", RevisionData.AuthorName);
 			format = format.Replace("{amail}", RevisionData.AuthorEMail);
+			format = format.Replace("{mname}", Environment.MachineName);
 
 			if (!string.IsNullOrEmpty(RevisionData.Branch))
 			{
@@ -700,7 +701,7 @@ namespace NetRevisionTool
 	internal enum TimeSource
 	{
 		/// <summary>
-		/// The time of the current build, i.e. the NetRevisionTool startup time.
+		/// The time of the current build, i.e. the .NET Revision Tool startup time.
 		/// </summary>
 		Build,
 		/// <summary>

@@ -65,7 +65,8 @@ namespace NetRevisionTool
 		/// <param name="informationalAttribute">Indicates whether the AssemblyInformationalVersion attribute is processed.</param>
 		/// <param name="revOnly">Indicates whether only the last number is replaced by the revision number.</param>
 		/// <param name="copyrightAttribute">Indicates whether the copyright year is replaced.</param>
-		public void PatchFile(string fallbackFormat, RevisionData data, bool simpleAttributes, bool informationalAttribute, bool revOnly, bool copyrightAttribute)
+		/// <param name="echo">Indicates whether the final informational version string is displayed.</param>
+		public void PatchFile(string fallbackFormat, RevisionData data, bool simpleAttributes, bool informationalAttribute, bool revOnly, bool copyrightAttribute, bool echo)
 		{
 			Program.ShowDebugMessage("Patching file \"" + fileName + "\"…");
 			string backupFileName = CreateBackup();
@@ -97,7 +98,7 @@ namespace NetRevisionTool
 			rf.RevisionData = data;
 
 			// Process all lines in the file
-			ResolveAllLines(rf, simpleAttributes, informationalAttribute, revOnly, copyrightAttribute);
+			ResolveAllLines(rf, simpleAttributes, informationalAttribute, revOnly, copyrightAttribute, echo);
 
 			// Write back all lines to the file
 			WriteFileLines();
@@ -307,7 +308,8 @@ namespace NetRevisionTool
 		/// <param name="informationalAttribute">Indicates whether the AssemblyInformationalVersion attribute is processed.</param>
 		/// <param name="revOnly">Indicates whether only the last number is replaced by the revision number.</param>
 		/// <param name="copyrightAttribute">Indicates whether the copyright year is replaced.</param>
-		private void ResolveAllLines(RevisionFormat rf, bool simpleAttributes, bool informationalAttribute, bool revOnly, bool copyrightAttribute)
+		/// <param name="echo">Indicates whether the final informational version string is displayed.</param>
+		private void ResolveAllLines(RevisionFormat rf, bool simpleAttributes, bool informationalAttribute, bool revOnly, bool copyrightAttribute, bool echo)
 		{
 			// Preparing a truncated dotted-numeric version if we may need it
 			string truncVersion = null;
@@ -425,6 +427,10 @@ namespace NetRevisionTool
 						lines[i] = match.Groups[1].Value + revisionId + match.Groups[3].Value;
 						Program.ShowDebugMessage("Found AssemblyInformationalVersion attribute.", 1);
 						Program.ShowDebugMessage("  Replaced \"" + match.Groups[2].Value + "\" with \"" + revisionId + "\".");
+						if (echo)
+						{
+							Console.WriteLine("Version: " + revisionId);
+						}
 					}
 				}
 

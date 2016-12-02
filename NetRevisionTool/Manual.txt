@@ -1,4 +1,4 @@
-﻿♦NetRevisionTool♣
+﻿♦.NET Revision Tool♣
 Injects the current VCS revision into a .NET assembly build.
 © Yves Goergen, http://unclassified.software/apps/netrevisiontool
 
@@ -20,6 +20,7 @@ The path parameter is used to locate the project’s AssemblyInfo files that sha
 /simple          Updates ONLY the simple assembly version attributes in the source.
 /info            Updates ONLY the informational assembly version attribute in the source.
 /nocopyright     Does NOT update the copyright year in the source.
+/echo            Shows the resolved informational version string for the build.
 
 /require <vcs>   Requires a working directory of the specified VCS.
 /rejectmod       Quits with an error return code if the working directory is modified.
@@ -65,6 +66,7 @@ The format defines how information about the commit or revision is formatted int
 {url}                 Repository URL.
 {cname}, {cmail}      Committer’s name or e-mail address.
 {aname}, {amail}      Author’s name or e-mail address.
+{mname}               Build machine name (computer name).
 {branch}              Currently checked-out branch.
 {branch:<sep>:<ref>}  Branch name, if not <ref> or empty, separated by <sep>, otherwise empty.
 {tag}                 Most recent matching tag name, with additional info.
@@ -151,7 +153,7 @@ SET rev=45d4e3c0
 
 Set the path argument as "$(ProjectDir)" (with quotes) when calling as pre- or post-build command in an MSBuild project. Set the post-build command to “always” to ensure that the modified source files are always restored correctly.
 
-Note: The PowerShell build framework (http://u10d.de/psbuild) integrates NetRevisionTool and always uses it in multi-project mode. Per-project invocations are automatically disabled through the environment variable %SuppressNetRevisionTool%. You might remove the pre/postbuild actions for solutions with many (like > 20) projects for better performance and let psbuild alone inject version IDs with one call per solution.
+Note: The PowerShell build framework (http://u10d.de/psbuild) integrates .NET Revision Tool and always uses it in multi-project mode. Per-project invocations are automatically disabled through the environment variable %SuppressNetRevisionTool%. You might remove the pre/postbuild actions for solutions with many (like > 20) projects for better performance and let psbuild alone inject version IDs with one call per solution.
 
 ♦SOURCE CODE LANGUAGES♣
 
