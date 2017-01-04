@@ -424,6 +424,18 @@ namespace NetRevisionTool.VcsProviders
 					Program.ShowDebugMessage("Found " + gitExeName + " in \"" + dir + "\"", 1);
 				}
 			}
+
+			// Try SmartGit local directory
+			if (git == null)
+			{
+				string dir = Environment.ExpandEnvironmentVariables(ProgramFilesX86() + @"\SmartGit\git\bin");
+				string testPath = Path.Combine(dir, gitExeName);
+				if (File.Exists(testPath))
+				{
+					git = testPath;
+					Program.ShowDebugMessage("Found " + gitExeName + " in \"" + dir + "\"", 1);
+				}
+			}
 			return git;
 		}
 

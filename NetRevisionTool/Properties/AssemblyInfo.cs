@@ -4,14 +4,14 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyProduct(".NET Revision Tool")]
 [assembly: AssemblyTitle(".NET Revision Tool")]
 [assembly: AssemblyDescription("Injects the current VCS revision into a .NET assembly build.")]
-[assembly: AssemblyCopyright("© 2011–2016 Yves Goergen")]
+[assembly: AssemblyCopyright("© 2011–2017 Yves Goergen")]
 [assembly: AssemblyCompany("unclassified software development")]
 
 // Assembly identity version. Must be a dotted-numeric version.
-[assembly: AssemblyVersion("2.6")]
+[assembly: AssemblyVersion("2.6.1")]
 
 // Repeat for Win32 file version resource because the assembly version is expanded to 4 parts.
-[assembly: AssemblyFileVersion("2.6")]
+[assembly: AssemblyFileVersion("2.6.1")]
 
 // Indicate the build configuration
 #if DEBUG
@@ -24,6 +24,9 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // Version history:
+//
+// 2.6.1 (2017-01-04)
+// * Finding git.exe from SmartGit local installations
 //
 // 2.6 (2016-12-02)
 // * Finding git.exe from SourceTree and Tower local installations
