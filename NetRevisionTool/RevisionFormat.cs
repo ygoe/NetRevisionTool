@@ -167,7 +167,9 @@ namespace NetRevisionTool
 				case SchemeType.Readable:
 					if (data.Utc)
 					{
-						time = time.UtcDateTime;
+                        var zone = TimeZoneInfo.FindSystemTimeZoneById("Mountain Standard Time");
+                        time = time.UtcDateTime;
+                        time = TimeZoneInfo.ConvertTimeFromUtc(time.DateTime, zone);
 					}
 					return time.ToString(data.TimeFormat, CultureInfo.InvariantCulture);
 
