@@ -176,16 +176,24 @@ namespace NetRevisionTool.VcsProviders
 				{
 					// GitLab runner uses detached HEAD so the normal Git command will always return
 					// "HEAD" instead of the actual branch name.
-					
+
 					// "HEAD" is reported by default with GitLab CI runner.
 					// "heads/*" is reported if an explicit 'git checkout -B' command has been issued.
-					
+
 					// Use GitLab CI provided environment variables instead if the available data is
 					// plausible.
-					if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI_BUILD_REF_NAME")) &&
+					if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI_COMMIT_REF_NAME")) &&
+						string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI_COMMIT_TAG")))
+					{
+						// GitLab v9
+						Program.ShowDebugMessage("Reading branch name from CI environment variable: CI_COMMIT_REF_NAME");
+						data.Branch = Environment.GetEnvironmentVariable("CI_COMMIT_REF_NAME");
+					}
+					else if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI_BUILD_REF_NAME")) &&
 						string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI_BUILD_TAG")))
 					{
-						Program.ShowDebugMessage("Reading branch name from CI environment variable");
+						// GitLab v8
+						Program.ShowDebugMessage("Reading branch name from CI environment variable: CI_BUILD_REF_NAME");
 						data.Branch = Environment.GetEnvironmentVariable("CI_BUILD_REF_NAME");
 					}
 					else

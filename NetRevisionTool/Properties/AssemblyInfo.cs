@@ -8,10 +8,10 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCompany("unclassified software development")]
 
 // Assembly identity version. Must be a dotted-numeric version.
-[assembly: AssemblyVersion("2.6.1")]
+[assembly: AssemblyVersion("2.6.2")]
 
 // Repeat for Win32 file version resource because the assembly version is expanded to 4 parts.
-[assembly: AssemblyFileVersion("2.6.1")]
+[assembly: AssemblyFileVersion("2.6.2")]
 
 // Indicate the build configuration
 #if DEBUG
@@ -24,6 +24,9 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // Version history:
+//
+// 2.6.2 (2017-04-06)
+// * Updated environment variables for GitLab CI runner v9.0
 //
 // 2.6.1 (2017-01-04)
 // * Finding git.exe from SmartGit local installations
