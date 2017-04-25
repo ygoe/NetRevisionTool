@@ -81,7 +81,8 @@ namespace NetRevisionTool
 			format = format.Replace("{amail}", RevisionData.AuthorEMail);
 			format = format.Replace("{mname}", Environment.MachineName);
 
-
+            if (RevisionData.RepoRootFolder != String.Empty)
+                format = format.Replace("{repodir}", RevisionData.RepoRootFolder);
 
 			if (!string.IsNullOrEmpty(RevisionData.Branch))
 			{
