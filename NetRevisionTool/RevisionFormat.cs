@@ -81,6 +81,8 @@ namespace NetRevisionTool
 			format = format.Replace("{amail}", RevisionData.AuthorEMail);
 			format = format.Replace("{mname}", Environment.MachineName);
 
+
+
 			if (!string.IsNullOrEmpty(RevisionData.Branch))
 			{
 				format = format.Replace("{branch}", RevisionData.Branch);
