@@ -313,6 +313,9 @@ namespace NetRevisionTool
 		/// <param name="severity">0 (trace message), 1 (success), 2 (warning), 3 (error), 4 (raw output).</param>
 		public static void ShowDebugMessage(string text, int severity = 0)
 		{
+            if (text == null)
+                return;
+
 			if (showDebugOutput)
 			{
 				var color = Console.ForegroundColor;

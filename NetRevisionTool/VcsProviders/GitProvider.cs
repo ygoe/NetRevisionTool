@@ -148,13 +148,20 @@ namespace NetRevisionTool.VcsProviders
 				line = null;
 				while (!p.StandardOutput.EndOfStream)
 				{
-					line = p.StandardOutput.ReadLine();
+                    string templine = p.StandardOutput.ReadLine();
+
+                    // Do not consider this line if it contans any of the file names that can, conceivably appear in the status due to the tool itself.
+
+                    if (!(templine.Contains("AssemblyInfo.cs") || templine.Contains("AssemblyInfo.vb") || templine.Contains("AssemblyInfo.bak")))
+                        line = templine;
+
 					Program.ShowDebugMessage(line, 4);
 				}
 				if (!p.WaitForExit(1000))
 				{
 					p.Kill();
 				}
+
 				data.IsModified = !string.IsNullOrEmpty(line);
 
 				// Query the current branch
