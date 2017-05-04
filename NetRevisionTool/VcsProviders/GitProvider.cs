@@ -9,7 +9,10 @@ using Microsoft.Win32;
 
 namespace NetRevisionTool.VcsProviders
 {
-	internal class GitProvider : IVcsProvider
+    /// <summary>
+    /// Git specific.
+    /// </summary>
+    internal class GitProvider : IVcsProvider
 	{
 		#region Private data
 
