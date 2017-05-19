@@ -87,6 +87,11 @@ namespace NetRevisionTool
 		/// </summary>
 		public int CommitsAfterTag { get; set; }
 
+        /// <summary>
+        /// The name of the parent containing repository folder, this is usually the same as the name of the hosted repo.
+        /// </summary>
+        public string RepoRootFolder { get; set; }
+
 		#endregion Revision data properties
 
 		#region Operations

@@ -81,6 +81,9 @@ namespace NetRevisionTool
 			format = format.Replace("{amail}", RevisionData.AuthorEMail);
 			format = format.Replace("{mname}", Environment.MachineName);
 
+            if (RevisionData.RepoRootFolder != String.Empty)
+                format = format.Replace("{repodir}", RevisionData.RepoRootFolder);
+
 			if (!string.IsNullOrEmpty(RevisionData.Branch))
 			{
 				format = format.Replace("{branch}", RevisionData.Branch);
@@ -167,7 +170,9 @@ namespace NetRevisionTool
 				case SchemeType.Readable:
 					if (data.Utc)
 					{
-						time = time.UtcDateTime;
+                        var zone = TimeZoneInfo.FindSystemTimeZoneById("Mountain Standard Time");
+                        time = time.UtcDateTime;
+                        time = TimeZoneInfo.ConvertTimeFromUtc(time.DateTime, zone);
 					}
 					return time.ToString(data.TimeFormat, CultureInfo.InvariantCulture);
 

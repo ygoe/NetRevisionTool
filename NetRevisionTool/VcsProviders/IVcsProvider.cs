@@ -34,6 +34,6 @@ namespace NetRevisionTool.VcsProviders
 		/// </summary>
 		/// <param name="path">The directory to process.</param>
 		/// <returns>The data about the revision found in the directory.</returns>
-		RevisionData ProcessDirectory(string path);
+		RevisionData ProcessDirectory(string path, string repoRoot);
 	}
 }

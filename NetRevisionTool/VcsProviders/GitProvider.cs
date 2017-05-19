@@ -69,12 +69,20 @@ namespace NetRevisionTool.VcsProviders
 			return false;
 		}
 
-		public RevisionData ProcessDirectory(string path)
+		public RevisionData ProcessDirectory(string path, string repoRoot)
 		{
-			// Initialise data
-			RevisionData data = new RevisionData
-			{
-				VcsProvider = this
+            string repositoryRoot = "";
+
+            if (String.IsNullOrWhiteSpace(repoRoot) == false)
+            {
+                repositoryRoot = Path.GetFileName(repoRoot);
+            }
+
+            // Initialise data
+            RevisionData data = new RevisionData
+            {
+                VcsProvider = this,
+                RepoRootFolder = repositoryRoot
 			};
 
 			// Queries the commit hash and time from the latest log entry

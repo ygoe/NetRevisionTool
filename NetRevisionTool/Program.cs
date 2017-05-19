@@ -410,7 +410,7 @@ namespace NetRevisionTool
 							ShowDebugMessage("Root directory will be scanned.", 0);
 							path = rootPath;
 						}
-						data = provider.ProcessDirectory(path);
+						data = provider.ProcessDirectory(path, rootPath);
 						break;
 					}
 				}
