@@ -8,10 +8,10 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCompany("unclassified software development")]
 
 // Assembly identity version. Must be a dotted-numeric version.
-[assembly: AssemblyVersion("2.6.2")]
+[assembly: AssemblyVersion("2.6.3")]
 
 // Repeat for Win32 file version resource because the assembly version is expanded to 4 parts.
-[assembly: AssemblyFileVersion("2.6.2")]
+[assembly: AssemblyFileVersion("2.6.3")]
 
 // Indicate the build configuration
 #if DEBUG
