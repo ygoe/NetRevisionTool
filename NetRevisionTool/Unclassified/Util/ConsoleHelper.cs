@@ -66,7 +66,7 @@ namespace Unclassified.Util
 				{
 					// Multiple characters displayed, Unicode not supported
 					Console.OutputEncoding = prevEncoding;
-					Console.CursorLeft -= 3;
+					Console.CursorLeft = 0;
 					Console.Write("   ");
 					Console.CursorLeft -= 3;
 				}
