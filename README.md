@@ -2,7 +2,11 @@
 
 Injects the current VCS revision of a working directory in a custom format into a .NET assembly build or just displays it.
 
-See http://unclassified.software/apps/netrevisiontool for further information and download the latest build `NetRevisionTool.exe`.
+See https://unclassified.software/apps/netrevisiontool for further information and download the latest build `NetRevisionTool.exe`.
+
+## .NET Revision Task for MSBuild
+
+**Note:** There is now a newer variant of this tool that integrates with MSBuild and supports .NET Core/Standard projects. https://github.com/ygoe/NetRevisionTask
 
 ## Quick reference
 
