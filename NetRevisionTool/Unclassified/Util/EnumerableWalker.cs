@@ -20,7 +20,7 @@ namespace Unclassified.Util
 		/// <param name="array">The array to walk though.</param>
 		public EnumerableWalker(IEnumerable<T> array)
 		{
-			if (array == null) throw new ArgumentNullException("array");
+			if (array == null) throw new ArgumentNullException(nameof(array));
 			this.array = array;
 		}
 
@@ -33,7 +33,7 @@ namespace Unclassified.Util
 		/// <summary>
 		/// Gets the enumerator.
 		/// </summary>
-		/// <returns></returns>
+		/// <returns>The enumerator.</returns>
 		public IEnumerator GetEnumerator()
 		{
 			enumerator = array.GetEnumerator();
@@ -43,7 +43,7 @@ namespace Unclassified.Util
 		/// <summary>
 		/// Gets the next item.
 		/// </summary>
-		/// <returns></returns>
+		/// <returns>The next item.</returns>
 		public T GetNext()
 		{
 			if (enumerator.MoveNext())

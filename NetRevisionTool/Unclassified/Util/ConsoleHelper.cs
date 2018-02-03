@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2016, Yves Goergen, http://unclassified.software/source/consolehelper
+﻿// Copyright (c) 2018, Yves Goergen, http://unclassified.software/source/consolehelper
 //
 // Copying and distribution of this file, with or without modification, are permitted provided the
 // copyright notice and this notice are preserved. This file is offered as-is, without any warranty.
@@ -52,24 +52,24 @@ namespace Unclassified.Util
 			if (!IsOutputRedirected)
 			{
 				var prevEncoding = Console.OutputEncoding;
-				int x = Console.CursorLeft;
+				int startLeft = Console.CursorLeft;
 				Console.OutputEncoding = Encoding.UTF8;
-				Console.Write("Ω");
-				if (Console.CursorLeft == x + 1)
+				Console.Write("≠");
+				if (Console.CursorLeft == startLeft + 1)
 				{
 					// One character displayed
-					Console.CursorLeft--;
-					Console.Write(" ");
-					Console.CursorLeft--;
 				}
 				else
 				{
 					// Multiple characters displayed, Unicode not supported
 					Console.OutputEncoding = prevEncoding;
-					Console.CursorLeft -= 3;
-					Console.Write("   ");
-					Console.CursorLeft -= 3;
 				}
+
+				// Clean up (with safety guard in case of line wrapping)
+				int len = Math.Max(Console.CursorLeft - startLeft, 0);
+				Console.CursorLeft -= len;
+				Console.Write(new string(' ', len));
+				Console.CursorLeft -= len;
 			}
 		}
 
@@ -113,7 +113,7 @@ namespace Unclassified.Util
 		/// Retrieves the file type of the specified file.
 		/// </summary>
 		/// <param name="hFile">A handle to the file.</param>
-		/// <returns></returns>
+		/// <returns>The file type.</returns>
 		[DllImport("kernel32.dll")]
 		private static extern FileType GetFileType(IntPtr hFile);
 
@@ -122,7 +122,7 @@ namespace Unclassified.Util
 		/// or standard error).
 		/// </summary>
 		/// <param name="nStdHandle">The standard device.</param>
-		/// <returns></returns>
+		/// <returns>The device handle.</returns>
 		[DllImport("kernel32.dll", SetLastError = true)]
 		private static extern IntPtr GetStdHandle(StdHandle nStdHandle);
 
@@ -390,8 +390,8 @@ namespace Unclassified.Util
 		/// <summary>
 		/// Determines whether the specified key is an input key.
 		/// </summary>
-		/// <param name="key"></param>
-		/// <returns></returns>
+		/// <param name="key">The key to check.</param>
+		/// <returns>true, if the key is an input key; otherwise, false.</returns>
 		public static bool IsInputKey(ConsoleKey key)
 		{
 			int[] ignore = new[]
@@ -519,7 +519,7 @@ namespace Unclassified.Util
 		/// </summary>
 		/// <param name="message">The error message to write.</param>
 		/// <param name="exitCode">The exit code to return.</param>
-		/// <returns></returns>
+		/// <returns>The <paramref name="exitCode"/> value.</returns>
 		public static int ExitError(string message, int exitCode)
 		{
 			ClearLine();
@@ -549,7 +549,7 @@ namespace Unclassified.Util
 		/// <param name="color">The new foreground color.</param>
 		public ConsoleColorScope(ConsoleColor color)
 		{
-			this.previousColor = Console.ForegroundColor;
+			previousColor = Console.ForegroundColor;
 			Console.ForegroundColor = color;
 		}
 
