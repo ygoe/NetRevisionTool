@@ -79,12 +79,13 @@ namespace NetRevisionTool.VcsProviders
 			return false;
 		}
 
-		public RevisionData ProcessDirectory(string path)
+		public RevisionData ProcessDirectory(string path, string repoRoot)
 		{
-			// Initialise data
-			RevisionData data = new RevisionData
-			{
-				VcsProvider = this
+            // Initialise data
+            RevisionData data = new RevisionData
+            {
+                VcsProvider = this,
+                RepoRootFolder = "" // Not yet implemneted as it is in GitProvider.
 			};
 
 			// svn assumes case-sensitive path names on Windows, which is... bad.

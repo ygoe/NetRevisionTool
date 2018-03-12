@@ -81,6 +81,9 @@ namespace NetRevisionTool
 			format = format.Replace("{amail}", RevisionData.AuthorEMail);
 			format = format.Replace("{mname}", Environment.MachineName);
 
+            if (RevisionData.RepoRootFolder != String.Empty)
+                format = format.Replace("{repodir}", RevisionData.RepoRootFolder);
+
 			if (!string.IsNullOrEmpty(RevisionData.Branch))
 			{
 				format = format.Replace("{branch}", RevisionData.Branch);
@@ -167,7 +170,12 @@ namespace NetRevisionTool
 				case SchemeType.Readable:
 					if (data.Utc)
 					{
-						time = time.UtcDateTime;
+                        // This code is specific to Arizona - it gets MST then uses that to get MST with daylight saving disabled.
+                        // SEE: https://stackoverflow.com/questions/12266948/remove-dst-from-datetime
+                        var zone = TimeZoneInfo.FindSystemTimeZoneById("Mountain Standard Time");
+                        var newzone = TimeZoneInfo.CreateCustomTimeZone(zone.Id, zone.BaseUtcOffset, zone.DisplayName, zone.StandardName, "", null, true);
+                        time = time.UtcDateTime;
+                        time = TimeZoneInfo.ConvertTimeFromUtc(time.DateTime, newzone);
 					}
 					return time.ToString(data.TimeFormat, CultureInfo.InvariantCulture);
 
@@ -185,16 +193,16 @@ namespace NetRevisionTool
 			return scheme;
 		}
 
-		#endregion Format resolving
+        #endregion Format resolving
 
-		#region Scheme parsing
+        #region Scheme parsing
 
-		/// <summary>
-		/// Parses a version scheme specification.
-		/// </summary>
-		/// <param name="scheme">The version scheme specification to parse.</param>
-		/// <returns>The parsed scheme data.</returns>
-		private static SchemeData ParseScheme(string scheme)
+        /// <summary>
+        /// Parses a version scheme specification.
+        /// </summary>
+        /// <param name="scheme">The version scheme specification to parse.</param>
+        /// <returns>The parsed scheme data.</returns>
+        private static SchemeData ParseScheme(string scheme)
 		{
 			SchemeData data = new SchemeData();
 

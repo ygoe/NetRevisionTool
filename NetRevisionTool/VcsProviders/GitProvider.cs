@@ -69,12 +69,20 @@ namespace NetRevisionTool.VcsProviders
 			return false;
 		}
 
-		public RevisionData ProcessDirectory(string path)
+		public RevisionData ProcessDirectory(string path, string repoRoot)
 		{
-			// Initialise data
-			RevisionData data = new RevisionData
-			{
-				VcsProvider = this
+            string repositoryRoot = "";
+
+            if (String.IsNullOrWhiteSpace(repoRoot) == false)
+            {
+                repositoryRoot = Path.GetFileName(repoRoot);
+            }
+
+            // Initialise data
+            RevisionData data = new RevisionData
+            {
+                VcsProvider = this,
+                RepoRootFolder = repositoryRoot
 			};
 
 			// Queries the commit hash and time from the latest log entry
@@ -140,13 +148,20 @@ namespace NetRevisionTool.VcsProviders
 				line = null;
 				while (!p.StandardOutput.EndOfStream)
 				{
-					line = p.StandardOutput.ReadLine();
+                    string templine = p.StandardOutput.ReadLine();
+
+                    // Do not consider this line if it contans any of the file names that can, conceivably appear in the status due to the tool itself.
+
+                    if (!(templine.Contains("AssemblyInfo.cs") || templine.Contains("AssemblyInfo.vb") || templine.Contains("AssemblyInfo.bak")))
+                        line = templine;
+
 					Program.ShowDebugMessage(line, 4);
 				}
 				if (!p.WaitForExit(1000))
 				{
 					p.Kill();
 				}
+
 				data.IsModified = !string.IsNullOrEmpty(line);
 
 				// Query the current branch
