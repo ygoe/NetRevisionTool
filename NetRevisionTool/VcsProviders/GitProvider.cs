@@ -295,7 +295,16 @@ namespace NetRevisionTool.VcsProviders
 						// Strip quotes (no Path.PathSeparator supported in quoted directories though)
 						dir = dir.Substring(1, dir.Length - 2);
 					}
-					string testPath = Path.Combine(dir, gitExeName);
+					var testPath = "";
+					try
+					{
+						testPath = Path.Combine(dir, gitExeName);
+					}
+					catch (Exception ex)
+					{
+						Console.Error.WriteLine($"%PATH% have some invalid path:{dir};Message:{ex.Message}");
+						continue;
+					}
 					if (File.Exists(testPath))
 					{
 						git = testPath;
