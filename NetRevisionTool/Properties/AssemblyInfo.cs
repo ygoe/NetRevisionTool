@@ -8,10 +8,10 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCompany("unclassified software development")]
 
 // Assembly identity version. Must be a dotted-numeric version.
-[assembly: AssemblyVersion("2.6.3")]
+[assembly: AssemblyVersion("2.6.4")]
 
 // Repeat for Win32 file version resource because the assembly version is expanded to 4 parts.
-[assembly: AssemblyFileVersion("2.6.3")]
+[assembly: AssemblyFileVersion("2.6.4")]
 
 // Indicate the build configuration
 #if DEBUG
@@ -24,6 +24,8 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // Version history:
+// 2.6.4 (2019-01-29)
+// * add customize assemblyInfo file name switch: /assemblyinfofilename or /aifn
 //
 // 2.6.3 (2018-02-03)
 // * Fixed #20: ConsoleHelper Unicode detection throws an exception; Some code cleanup

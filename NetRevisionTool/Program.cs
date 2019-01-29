@@ -105,6 +105,7 @@ namespace NetRevisionTool
 			var scanRootOption = cmdLine.RegisterOption("root");
 			var decodeRevisionOption = cmdLine.RegisterOption("decode", 1);
 			var predictRevisionsOption = cmdLine.RegisterOption("predict");
+			var custAssemblyInfoFileName = cmdLine.RegisterOption("assemblyinfofilename", 1).Alias("aifn");
 
 			try
 			{
@@ -123,6 +124,11 @@ namespace NetRevisionTool
 			catch (Exception ex)
 			{
 				throw new ConsoleException(ex.Message, ExitCodes.CmdLineError);
+			}
+
+			if (custAssemblyInfoFileName.IsSet)
+			{
+				AssemblyInfoHelper.CustomiseAssemblyInfoFileName = custAssemblyInfoFileName.Value;
 			}
 
 			// Handle simple text output options

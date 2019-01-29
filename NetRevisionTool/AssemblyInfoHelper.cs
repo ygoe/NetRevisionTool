@@ -10,6 +10,8 @@ namespace NetRevisionTool
 {
 	internal class AssemblyInfoHelper
 	{
+		public static string CustomiseAssemblyInfoFileName = "";
+
 		#region Private data
 
 		private string fileName;
@@ -159,19 +161,34 @@ namespace NetRevisionTool
 		/// <param name="path">The directory to search in.</param>
 		private void FindAssemblyInfoFile(string path)
 		{
-			fileName = Path.Combine(path, "Properties", "AssemblyInfo.cs");
+			fileName = Path.Combine(path, "Properties",
+				string.IsNullOrWhiteSpace(CustomiseAssemblyInfoFileName)
+					? "AssemblyInfo.cs"
+					: CustomiseAssemblyInfoFileName);
 			if (!File.Exists(fileName))
 			{
-				fileName = Path.Combine(path, "My Project", "AssemblyInfo.vb");
+				fileName = Path.Combine(path, "My Project",
+					string.IsNullOrWhiteSpace(CustomiseAssemblyInfoFileName)
+						? "AssemblyInfo.vb"
+						: CustomiseAssemblyInfoFileName);
 			}
+
 			if (!File.Exists(fileName))
 			{
-				fileName = Path.Combine(path, "AssemblyInfo.cs");
+				fileName = Path.Combine(path,
+					string.IsNullOrWhiteSpace(CustomiseAssemblyInfoFileName)
+						? "AssemblyInfo.cs"
+						: CustomiseAssemblyInfoFileName);
 			}
+
 			if (!File.Exists(fileName))
 			{
-				fileName = Path.Combine(path, "AssemblyInfo.vb");
+				fileName = Path.Combine(path,
+					string.IsNullOrWhiteSpace(CustomiseAssemblyInfoFileName)
+						? "AssemblyInfo.vb"
+						: CustomiseAssemblyInfoFileName);
 			}
+
 			if (!File.Exists(fileName))
 			{
 				fileName = null;

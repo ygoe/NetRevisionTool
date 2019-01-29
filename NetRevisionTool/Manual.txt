@@ -32,6 +32,8 @@ The path parameter is used to locate the project’s AssemblyInfo files that sha
 /root            Scan the working directory root for revision data instead of the specified path. (Can make a difference with SVN.)
 /decode <revId>  Decodes a formatted revision ID. Set /format or keep a format in the AssemblyInfo file.
 /predict         Predicts the next 20 revision IDs. Set /format or keep a format in the AssemblyInfo file.
+/assemblyinfofilename, /aifn
+                 set the customize AssemblyInfo.cs file name, include the file extension name
 
 If the /decode option is set, the specified revision ID is decoded into the time it represents.
 If the /patch or /restore options are not set, the generated revision ID is just displayed.
